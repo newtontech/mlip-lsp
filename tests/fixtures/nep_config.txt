@@ -1,0 +1,8 @@
+# NEP training configuration
+generation     200000
+population     50
+batch          10
+neuron         30
+cutoff         5.0
+lambda_1       0.1
+lambda_2       0.1

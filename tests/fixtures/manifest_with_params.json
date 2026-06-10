@@ -1,0 +1,14 @@
+{
+  "model": "MACE",
+  "structure": "POSCAR",
+  "task": "md",
+  "parameters": {
+    "temperature": 300,
+    "timestep": 1.0,
+    "steps": 10000
+  },
+  "output": {
+    "trajectory": "traj.xyz",
+    "log": "md.log"
+  }
+}
