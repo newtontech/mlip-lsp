@@ -1,10 +1,6 @@
 from __future__ import annotations
 
-from mlip_lsp.rich_diagnostics import (
-    DIAGNOSTIC_CATEGORIES,
-    agent_check_payload,
-    diagnostic_to_dict,
-)
+from mlip_lsp.rich_diagnostics import DIAGNOSTIC_CATEGORIES, agent_check_payload, diagnostic_to_dict
 
 
 def test_diagnostic_engine_v1_contract_shape() -> None:
