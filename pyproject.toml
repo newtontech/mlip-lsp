@@ -46,6 +46,7 @@ mlip-lsp = "mlip_lsp.cli:lsp_main"
 mlip-lint = "mlip_lsp.cli:lint_main"
 mlip-fmt = "mlip_lsp.cli:fmt_main"
 mlip-test = "mlip_lsp.cli:test_main"
+mlip-lsp-tool = "mlip_lsp.tool:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mlip_lsp"]
@@ -65,3 +66,4 @@ select = ["E", "F", "I", "B", "UP"]
 [tool.mypy]
 python_version = "3.10"
 strict = true
+
