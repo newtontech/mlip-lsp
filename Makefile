@@ -15,7 +15,10 @@ typecheck:
 test:
 	bash scripts/test.sh
 
-check: lint typecheck test
+wiki-check:
+	bash scripts/check-llm-wiki.sh
+
+check: lint typecheck test wiki-check
 
 cleanup-merged:
 	bash scripts/cleanup_merged_worktrees.sh

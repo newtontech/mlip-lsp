@@ -89,6 +89,28 @@
       "kind": "official_docs",
       "label": "MLIP documentation",
       "url": "https://mlip.skoltech.ru/"
+    },
+    {
+      "kind": "official_examples",
+      "label": "MACE training examples",
+      "url": "https://github.com/acesuit/mace"
     }
-  ]
+  ],
+  "llmWiki": {
+    "upstreamManifest": "raw/assets/upstream-sources.md",
+    "agentContext": "wiki/synthesis/openqc-agent-context.md",
+    "diagnosticEngine": "wiki/concepts/diagnostic-engine-v1.md",
+    "exampleInputs": [
+      "raw/assets/valid_manifest.json",
+      "raw/assets/examples/manifest_md.json",
+      "raw/assets/valid_ase_script.py"
+    ],
+    "hoverCorpus": "wiki/entities/MLIP_Manifest.md",
+    "operationHints": {
+      "check": "wiki/synthesis/Diagnostic_Codes_Reference.md",
+      "hover": "wiki/entities/MLIP_Manifest.md",
+      "complete": "wiki/synthesis/Input_Format_Reference.md",
+      "context": "wiki/synthesis/openqc-agent-context.md"
+    }
+  }
 }

@@ -20,7 +20,9 @@ mlip-lsp/
 │   ├── mtp-documentation.md  # MTP完整文档
 │   ├── mlip-input-format.md  # 输入文件格式参考
 │   ├── mlip-examples.md      # 训练脚本和示例
-│   └── mlip-cli-reference.md # CLI工具参考
+│   ├── mlip-cli-reference.md # CLI工具参考
+│   ├── upstream-sources.md   # 官方上游来源清单
+│   └── examples/manifest_md.json  # MD任务清单示例
 ├── wiki/
 │   ├── entities/         # MLIP领域实体
 │   ├── concepts/         # 跨领域概念
@@ -89,6 +91,12 @@ MatMaster期望的manifest结构和验证规则
 ### [诊断代码参考 / Diagnostic Codes Reference](wiki/synthesis/Diagnostic_Codes_Reference.md)
 所有诊断代码及其修复建议的完整列表
 
+### [OpenQC Agent Context](wiki/synthesis/openqc-agent-context.md)
+OpenQC agent CLI 与 wiki/raw 证据的映射
+
+### [Diagnostic Engine v1](wiki/concepts/diagnostic-engine-v1.md)
+DiagnosticEnvelope/v1 严重性与 blocking 策略
+
 ## 快速开始 / Quick Start
 
 ### 静态分析
@@ -128,7 +136,8 @@ mlip-lsp --stdio
 - [输入格式参考](raw/assets/mlip-input-format.md) — NEP, MTP, MACE, DeePMD-kit, NequIP, ACE格式
 - [训练示例](raw/assets/mlip-examples.md) — 各框架训练脚本
 - [CLI参考](raw/assets/mlip-cli-reference.md) — mlp, mace_run_train, dp, nequip-train, nep命令
-- [诊断引擎文档](raw/assets/DIAGNOSTIC_ENGINE_V1.md)
+- [上游来源清单](raw/assets/upstream-sources.md) — 官方文档与示例索引
+- [诊断引擎文档](docs/DIAGNOSTIC_ENGINE_V1.md)
 - [原始源代码](https://github.com/newtontech/mlip-lsp)
 
 ### MLIP框架链接 / MLIP Framework Links
@@ -144,3 +153,5 @@ mlip-lsp --stdio
 ## 变更历史 / Change History
 
 参见 [log.md](log.md) 获取详细变更记录。
+
+运行 `bash scripts/check-llm-wiki.sh` 可验证 wiki 导航链接。
