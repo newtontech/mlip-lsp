@@ -54,7 +54,7 @@ class TestJSONManifest:
         )
         diagnostics = analyze_path(tmp_path)
         codes = [d.code for d in diagnostics]
-        assert "MLIP101" in codes
+        assert "MLIP-E082" in codes
 
     def test_missing_structure_key(self, tmp_path: Path) -> None:
         fixture = tmp_path / "bad.json"
@@ -64,7 +64,7 @@ class TestJSONManifest:
         )
         diagnostics = analyze_path(tmp_path)
         codes = [d.code for d in diagnostics]
-        assert "MLIP101" in codes
+        assert "MLIP-E084" in codes
 
     def test_missing_task_key(self, tmp_path: Path) -> None:
         fixture = tmp_path / "bad.json"
@@ -74,14 +74,14 @@ class TestJSONManifest:
         )
         diagnostics = analyze_path(tmp_path)
         codes = [d.code for d in diagnostics]
-        assert "MLIP101" in codes
+        assert "MLIP-E083" in codes
 
     def test_missing_multiple_keys(self, tmp_path: Path) -> None:
         fixture = tmp_path / "bad.json"
         fixture.write_text('{"model":"DPA3.1-3M"}', encoding="utf-8")
         diagnostics = analyze_path(tmp_path)
-        missing_warnings = [d for d in diagnostics if d.code == "MLIP101"]
-        assert len(missing_warnings) == 2  # structure + task
+        missing_errors = [d for d in diagnostics if d.code in ("MLIP-E083", "MLIP-E084")]
+        assert len(missing_errors) == 2  # structure + task
 
     def test_invalid_json_reports_error(self, tmp_path: Path) -> None:
         fixture = tmp_path / "broken.json"
@@ -89,20 +89,19 @@ class TestJSONManifest:
         diagnostics = analyze_path(tmp_path)
         errors = [d for d in diagnostics if d.severity == "error"]
         assert errors
-        assert errors[0].code == "MLIP001"
+        assert errors[0].code == "MLIP-E080"
 
     def test_empty_json_object_reports_missing_keys(self, tmp_path: Path) -> None:
         fixture = tmp_path / "empty.json"
         fixture.write_text("{}", encoding="utf-8")
         diagnostics = analyze_path(tmp_path)
-        missing = [d for d in diagnostics if d.code == "MLIP101"]
+        missing = [d for d in diagnostics if d.code in ("MLIP-E082", "MLIP-E083", "MLIP-E084")]
         assert len(missing) == 3  # model, structure, task
 
     def test_json_array_no_crash(self, tmp_path: Path) -> None:
         fixture = tmp_path / "array.json"
         fixture.write_text("[1, 2, 3]", encoding="utf-8")
         diagnostics = analyze_path(tmp_path)
-        # Should not crash; array is valid JSON but not a manifest dict
         assert isinstance(diagnostics, list)
 
     def test_manifest_has_suggested_fix(self, tmp_path: Path) -> None:
@@ -110,9 +109,32 @@ class TestJSONManifest:
         fixture.write_text('{"model":"DPA3.1-3M"}', encoding="utf-8")
         diagnostics = analyze_path(tmp_path)
         for d in diagnostics:
-            if d.code == "MLIP101":
+            if d.code in ("MLIP-E082", "MLIP-E083", "MLIP-E084"):
                 assert d.suggested_fix is not None
                 assert "key" in d.suggested_fix
+
+    def test_missing_path_reference_e086(self, tmp_path: Path) -> None:
+        """MLIP-E086: manifest references a non-existent file."""
+        fixture = tmp_path / "manifest.json"
+        fixture.write_text(
+            json.dumps({"model": "DPA3.1-3M", "structure": "nonexistent.xyz", "task": "optimize"}),
+            encoding="utf-8",
+        )
+        diagnostics = analyze_path(tmp_path)
+        codes = [d.code for d in diagnostics]
+        assert "MLIP-E086" in codes
+
+    def test_existing_path_reference_no_e086(self, tmp_path: Path) -> None:
+        """No MLIP-E086 when referenced file exists."""
+        (tmp_path / "POSCAR").write_text("structure data", encoding="utf-8")
+        fixture = tmp_path / "manifest.json"
+        fixture.write_text(
+            json.dumps({"model": "DPA3.1-3M", "structure": "POSCAR", "task": "optimize"}),
+            encoding="utf-8",
+        )
+        diagnostics = analyze_path(tmp_path)
+        codes = [d.code for d in diagnostics]
+        assert "MLIP-E086" not in codes
 
 
 class TestFixtureFiles:
@@ -131,23 +153,109 @@ class TestFixtureFiles:
     def test_missing_structure_fixture(self) -> None:
         diagnostics = analyze_file(FIXTURES / "missing_structure.json")
         codes = [d.code for d in diagnostics]
-        assert "MLIP101" in codes
+        assert "MLIP-E084" in codes
 
     def test_missing_model_fixture(self) -> None:
         diagnostics = analyze_file(FIXTURES / "missing_model.json")
         codes = [d.code for d in diagnostics]
-        assert "MLIP101" in codes
+        assert "MLIP-E082" in codes
 
     def test_missing_task_fixture(self) -> None:
         diagnostics = analyze_file(FIXTURES / "missing_task.json")
         codes = [d.code for d in diagnostics]
-        assert "MLIP101" in codes
+        assert "MLIP-E083" in codes
 
     def test_invalid_json_fixture(self) -> None:
         diagnostics = analyze_file(FIXTURES / "invalid_json.json")
         errors = [d for d in diagnostics if d.severity == "error"]
         assert errors
-        assert errors[0].code == "MLIP001"
+        assert errors[0].code == "MLIP-E080"
+
+
+# ---------------------------------------------------------------------------
+# YAML manifest tests (MLIP-E081)
+# ---------------------------------------------------------------------------
+
+
+class TestYAMLManifest:
+    def test_valid_yaml_manifest_no_errors(self, tmp_path: Path) -> None:
+        fixture = tmp_path / "manifest.yaml"
+        fixture.write_text(
+            "model: DPA3.1-3M\nstructure: input.cif\ntask: optimize\n",
+            encoding="utf-8",
+        )
+        diagnostics = analyze_path(tmp_path)
+        errors = [d for d in diagnostics if d.severity == "error"]
+        assert not errors
+
+    def test_valid_yml_manifest_no_errors(self, tmp_path: Path) -> None:
+        fixture = tmp_path / "manifest.yml"
+        fixture.write_text(
+            "model: MACE\nstructure: POSCAR\ntask: md\n",
+            encoding="utf-8",
+        )
+        diagnostics = analyze_path(tmp_path)
+        errors = [d for d in diagnostics if d.severity == "error"]
+        assert not errors
+
+    def test_invalid_yaml_reports_e081(self, tmp_path: Path) -> None:
+        fixture = tmp_path / "bad.yaml"
+        fixture.write_text(
+            "model: DPA3.1-3M\n  bad_indent: true\nstructure: input.cif\n",
+            encoding="utf-8",
+        )
+        diagnostics = analyze_path(tmp_path)
+        errors = [d for d in diagnostics if d.severity == "error"]
+        assert errors
+        assert errors[0].code == "MLIP-E081"
+
+    def test_yaml_missing_model_e082(self, tmp_path: Path) -> None:
+        fixture = tmp_path / "manifest.yaml"
+        fixture.write_text(
+            "structure: input.cif\ntask: optimize\n",
+            encoding="utf-8",
+        )
+        diagnostics = analyze_path(tmp_path)
+        codes = [d.code for d in diagnostics]
+        assert "MLIP-E082" in codes
+
+    def test_yaml_missing_task_e083(self, tmp_path: Path) -> None:
+        fixture = tmp_path / "manifest.yaml"
+        fixture.write_text(
+            "model: DPA3.1-3M\nstructure: input.cif\n",
+            encoding="utf-8",
+        )
+        diagnostics = analyze_path(tmp_path)
+        codes = [d.code for d in diagnostics]
+        assert "MLIP-E083" in codes
+
+    def test_yaml_missing_structure_e084(self, tmp_path: Path) -> None:
+        fixture = tmp_path / "manifest.yaml"
+        fixture.write_text(
+            "model: DPA3.1-3M\ntask: static\n",
+            encoding="utf-8",
+        )
+        diagnostics = analyze_path(tmp_path)
+        codes = [d.code for d in diagnostics]
+        assert "MLIP-E084" in codes
+
+    def test_yaml_missing_path_reference_e086(self, tmp_path: Path) -> None:
+        """MLIP-E086: YAML manifest references non-existent file."""
+        fixture = tmp_path / "manifest.yaml"
+        fixture.write_text(
+            "model: DPA3.1-3M\nstructure: nonexistent.xyz\ntask: optimize\n",
+            encoding="utf-8",
+        )
+        diagnostics = analyze_path(tmp_path)
+        codes = [d.code for d in diagnostics]
+        assert "MLIP-E086" in codes
+
+    def test_yaml_empty_document(self, tmp_path: Path) -> None:
+        fixture = tmp_path / "empty.yaml"
+        fixture.write_text("", encoding="utf-8")
+        diagnostics = analyze_path(tmp_path)
+        # Empty YAML parses as None, not a dict
+        assert isinstance(diagnostics, list)
 
 
 # ---------------------------------------------------------------------------
@@ -179,6 +287,7 @@ class TestPythonScripts:
         assert errors
 
     def test_missing_ase_import_warning(self, tmp_path: Path) -> None:
+        """MLIP-W080: missing ASE import."""
         fixture = tmp_path / "no_ase.py"
         fixture.write_text(
             "structure = [1, 2, 3]\nprint(structure)\n",
@@ -186,9 +295,10 @@ class TestPythonScripts:
         )
         diagnostics = analyze_path(tmp_path)
         codes = [d.code for d in diagnostics]
-        assert "MLIP101" in codes
+        assert "MLIP-W080" in codes
 
-    def test_missing_structure_symbol_warning(self, tmp_path: Path) -> None:
+    def test_missing_structure_symbol_error(self, tmp_path: Path) -> None:
+        """MLIP-E085: missing structure symbol."""
         fixture = tmp_path / "no_structure.py"
         fixture.write_text(
             "from ase import Atoms\natoms = Atoms('Cu')\nprint(atoms)\n",
@@ -196,7 +306,7 @@ class TestPythonScripts:
         )
         diagnostics = analyze_path(tmp_path)
         codes = [d.code for d in diagnostics]
-        assert "MLIP102" in codes
+        assert "MLIP-E085" in codes
 
     def test_valid_ase_script_fixture(self) -> None:
         diagnostics = analyze_file(FIXTURES / "valid_ase_script.py")
@@ -207,7 +317,61 @@ class TestPythonScripts:
         diagnostics = analyze_file(FIXTURES / "syntax_error_script.py")
         errors = [d for d in diagnostics if d.severity == "error"]
         assert errors
-        assert errors[0].code == "MLIP001"
+        assert errors[0].code == "MLIP-E080"
+
+
+# ---------------------------------------------------------------------------
+# Log file tests (MLIP-E087)
+# ---------------------------------------------------------------------------
+
+
+class TestLogFiles:
+    def test_log_with_traceback_e087(self, tmp_path: Path) -> None:
+        """MLIP-E087: runtime log with Python traceback."""
+        fixture = tmp_path / "mlip.log"
+        fixture.write_text(
+            "Starting MLIP calculation...\n"
+            "Traceback (most recent call last):\n"
+            '  File "run.py", line 5, in <module>\n'
+            "    calc = MLIPCalculator(model='bad')\n"
+            "RuntimeError: Model not found\n"
+            "Done.\n",
+            encoding="utf-8",
+        )
+        diagnostics = analyze_path(tmp_path)
+        codes = [d.code for d in diagnostics]
+        assert "MLIP-E087" in codes
+
+    def test_log_without_traceback(self, tmp_path: Path) -> None:
+        fixture = tmp_path / "mlip.log"
+        fixture.write_text(
+            "Starting MLIP calculation...\n"
+            "Step 1: energy = -10.5\n"
+            "Step 2: energy = -10.6\n"
+            "Done.\n",
+            encoding="utf-8",
+        )
+        diagnostics = analyze_path(tmp_path)
+        assert isinstance(diagnostics, list)
+        assert len(diagnostics) == 0
+
+    def test_log_multiple_tracebacks(self, tmp_path: Path) -> None:
+        """Multiple tracebacks should produce multiple E087 diagnostics."""
+        fixture = tmp_path / "mlip.log"
+        fixture.write_text(
+            "Run 1:\n"
+            "Traceback (most recent call last):\n"
+            "  File 'a.py', line 1\n"
+            "ValueError: bad value\n"
+            "Run 2:\n"
+            "Traceback (most recent call last):\n"
+            "  File 'b.py', line 2\n"
+            "TypeError: bad type\n",
+            encoding="utf-8",
+        )
+        diagnostics = analyze_path(tmp_path)
+        e087 = [d for d in diagnostics if d.code == "MLIP-E087"]
+        assert len(e087) == 2
 
 
 # ---------------------------------------------------------------------------
@@ -225,7 +389,6 @@ class TestFormatter:
         result = format_text(text)
         lines = result.strip().split("\n")
         assert len(lines) == 2
-        # Both lines should have '=' aligned
         eq_positions = [line.index("=") for line in lines]
         assert eq_positions[0] == eq_positions[1]
 
@@ -311,7 +474,6 @@ class TestPathHandling:
         fixture = tmp_path / "binary.json"
         fixture.write_bytes(b"\x80\x81\x82")
         diagnostics = analyze_path(tmp_path)
-        # The file won't be picked up as valid JSON anyway, or will error
         assert isinstance(diagnostics, list)
 
     def test_multiple_files_sorted(self, tmp_path: Path) -> None:
@@ -331,6 +493,22 @@ class TestPathHandling:
         assert diagnostics
         assert diagnostics[0].code == "MLIP201"
 
+    def test_yaml_file_is_supported(self, tmp_path: Path) -> None:
+        fixture = tmp_path / "manifest.yaml"
+        fixture.write_text(
+            "model: DPA3.1-3M\nstructure: input.cif\ntask: optimize\n",
+            encoding="utf-8",
+        )
+        diagnostics = analyze_path(tmp_path)
+        errors = [d for d in diagnostics if d.severity == "error"]
+        assert not errors
+
+    def test_log_file_is_supported(self, tmp_path: Path) -> None:
+        fixture = tmp_path / "run.log"
+        fixture.write_text("All good.\n", encoding="utf-8")
+        diagnostics = analyze_path(tmp_path)
+        assert isinstance(diagnostics, list)
+
 
 # ---------------------------------------------------------------------------
 # Diagnostic data class tests
@@ -339,9 +517,9 @@ class TestPathHandling:
 
 class TestDiagnostic:
     def test_to_json(self) -> None:
-        d = Diagnostic("MLIP001", "error", "test message", "file.json", 1)
+        d = Diagnostic("MLIP-E080", "error", "test message", "file.json", 1)
         j = d.to_json()
-        assert j["code"] == "MLIP001"
+        assert j["code"] == "MLIP-E080"
         assert j["severity"] == "error"
         assert j["message"] == "test message"
         assert j["file"] == "file.json"
@@ -352,7 +530,7 @@ class TestDiagnostic:
         assert j["confidence"] == 1.0
 
     def test_frozen(self) -> None:
-        d = Diagnostic("MLIP001", "error", "test", "f", 1)
+        d = Diagnostic("MLIP-E080", "error", "test", "f", 1)
         import pytest
 
         with pytest.raises(AttributeError):
@@ -360,18 +538,18 @@ class TestDiagnostic:
 
     def test_all_fields(self) -> None:
         d = Diagnostic(
-            "MLIP101",
-            "warning",
+            "MLIP-E082",
+            "error",
             "missing key",
             "manifest.json",
             1,
             column=5,
             evidence=["key 'model' not found"],
             suggested_fix={"kind": "add_json_key", "key": "model"},
-            confidence=0.78,
+            confidence=0.9,
         )
         j = d.to_json()
         assert j["column"] == 5
         assert len(j["evidence"]) == 1
         assert j["suggested_fix"]["key"] == "model"
-        assert j["confidence"] == 0.78
+        assert j["confidence"] == 0.9

@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import ast
 import json
+import os
 import re
 from pathlib import Path
 from typing import Any
 
+import yaml
 from lsprotocol.types import (
     TEXT_DOCUMENT_CODE_ACTION,
     TEXT_DOCUMENT_COMPLETION,
@@ -39,10 +41,17 @@ from lsprotocol.types import (
 from lsprotocol.types import (
     Diagnostic as LspDiagnostic,
 )
+from lsprotocol.types import (
+    OptionalVersionedTextDocumentIdentifier,
+    TextDocumentEdit,
+    WorkspaceEdit,
+)
 from pygls.lsp.server import LanguageServer
 
 from .analyzer import REQUIRED_JSON_KEYS, format_text
 from .diagnostics import Diagnostic
+from .features.formatter import safe_format
+from .features.log_parser import log_diagnostics
 
 # ---------------------------------------------------------------------------
 # LSP diagnostic / completion / hover helpers
@@ -93,6 +102,24 @@ PYTHON_COMPLETION_SNIPPETS = {
     ],
 }
 
+# Extended hover docs for Python symbols
+PYTHON_HOVER_DOCS: dict[str, str] = {
+    "ase": "**ASE**  \nAtomic Simulation Environment for atomistic simulations.",
+    "Atoms": "**Atoms**  \nASE object representing a collection of atoms.",
+    "structure": "**structure**  \nExpected ASE Atoms object for MLIP workflow with a .calc attribute.",
+    "BFGS": "**BFGS**  \nASE optimizer using the BFGS algorithm.",
+    "MLIPCalculator": (
+        "**MLIPCalculator**  \n"
+        "ASE calculator wrapping an MLIP model for energy/force predictions."
+    ),
+    "calc": (
+        "**calc**  \n"
+        "ASE calculator attached to an Atoms object for DFT or MLIP computations."
+    ),
+    "FIRE": "**FIRE**  \nASE optimizer using the FIRE algorithm.",
+    "LBFGS": "**LBFGS**  \nASE optimizer using the Limited-memory BFGS algorithm.",
+}
+
 
 def _uri_to_path(uri: str) -> str:
     """Convert a file:// URI to a local path string."""
@@ -116,29 +143,72 @@ def _compute_diagnostics_for_uri(uri: str, content: str) -> list[Diagnostic]:
         except json.JSONDecodeError as exc:
             return [
                 Diagnostic(
-                    "MLIP001",
+                    "MLIP-E080",
                     "error",
-                    exc.msg,
+                    f"JSON manifest cannot be parsed: {exc.msg}",
                     _uri_to_path(uri),
                     exc.lineno,
                     exc.colno,
+                    suggested_fix={"kind": "fix_json_syntax", "detail": exc.msg},
+                    confidence=0.95,
                 )
             ]
         diagnostics: list[Diagnostic] = []
         if isinstance(payload, dict):
-            for key in REQUIRED_JSON_KEYS:
+            key_to_code = {"model": "MLIP-E082", "task": "MLIP-E083", "structure": "MLIP-E084"}
+            for key, code in key_to_code.items():
                 if key not in payload:
                     diagnostics.append(
                         Diagnostic(
-                            "MLIP101",
-                            "warning",
+                            code,
+                            "error",
                             f"manifest is missing required key '{key}'",
                             _uri_to_path(uri),
                             1,
                             suggested_fix={"kind": "add_json_key", "key": key},
-                            confidence=0.78,
+                            confidence=0.9,
                         )
                     )
+            # MLIP-E086: check path references
+            diagnostics.extend(_check_path_refs(payload, path, uri))
+        return diagnostics
+
+    if suffix in (".yaml", ".yml"):
+        try:
+            payload = yaml.safe_load(content)
+        except yaml.YAMLError as exc:
+            detail = str(exc) if exc else "unknown YAML error"
+            line = 1
+            if hasattr(exc, "problem_mark") and exc.problem_mark is not None:
+                line = exc.problem_mark.line + 1
+            return [
+                Diagnostic(
+                    "MLIP-E081",
+                    "error",
+                    f"YAML manifest cannot be parsed: {detail}",
+                    _uri_to_path(uri),
+                    line,
+                    suggested_fix={"kind": "fix_yaml_syntax", "detail": detail},
+                    confidence=0.95,
+                )
+            ]
+        diagnostics: list[Diagnostic] = []
+        if isinstance(payload, dict):
+            key_to_code = {"model": "MLIP-E082", "task": "MLIP-E083", "structure": "MLIP-E084"}
+            for key, code in key_to_code.items():
+                if key not in payload:
+                    diagnostics.append(
+                        Diagnostic(
+                            code,
+                            "error",
+                            f"manifest is missing required key '{key}'",
+                            _uri_to_path(uri),
+                            1,
+                            suggested_fix={"kind": "add_json_key", "key": key},
+                            confidence=0.9,
+                        )
+                    )
+            diagnostics.extend(_check_path_refs(payload, path, uri))
         return diagnostics
 
     if suffix == ".py":
@@ -147,7 +217,7 @@ def _compute_diagnostics_for_uri(uri: str, content: str) -> list[Diagnostic]:
         except SyntaxError as exc:
             return [
                 Diagnostic(
-                    "MLIP001",
+                    "MLIP-E080",
                     "error",
                     exc.msg,
                     _uri_to_path(uri),
@@ -158,7 +228,6 @@ def _compute_diagnostics_for_uri(uri: str, content: str) -> list[Diagnostic]:
         py_diags: list[Diagnostic] = []
         names = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
         attrs = {node.attr for node in ast.walk(tree) if isinstance(node, ast.Attribute)}
-        # Check Import statements explicitly
         imports = set()
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
@@ -167,10 +236,11 @@ def _compute_diagnostics_for_uri(uri: str, content: str) -> list[Diagnostic]:
             elif isinstance(node, ast.ImportFrom) and node.module:
                 imports.add(node.module.split(".")[0])
 
+        # MLIP-W080: missing ASE import
         if "ase" not in imports and "ase" not in names:
             py_diags.append(
                 Diagnostic(
-                    "MLIP101",
+                    "MLIP-W080",
                     "warning",
                     "expected import or symbol 'ase' was not found",
                     _uri_to_path(uri),
@@ -180,21 +250,85 @@ def _compute_diagnostics_for_uri(uri: str, content: str) -> list[Diagnostic]:
                 )
             )
 
+        # MLIP-E085: missing structure symbol
         if "structure" not in names and "structure" not in attrs and "structure" not in content:
             py_diags.append(
                 Diagnostic(
-                    "MLIP102",
-                    "warning",
+                    "MLIP-E085",
+                    "error",
                     "expected workflow symbol 'structure' was not found",
                     _uri_to_path(uri),
                     1,
+                    suggested_fix={"kind": "add_symbol", "symbol": "structure"},
                     confidence=0.68,
                 )
             )
 
         return py_diags
 
+    if suffix == ".log":
+        return log_diagnostics(content, _uri_to_path(uri))
+
     return []
+
+
+def _looks_like_file_path(value: str) -> bool:
+    """Return True if the value looks like a file path (has recognized extension or slash)."""
+    if "/" in value or "\\" in value:
+        return True
+    known_extensions = {
+        ".txt", ".json", ".yaml", ".yml", ".py", ".pb", ".onnx",
+        ".pt", ".pth", ".bin", ".cif", ".xyz", ".poscar", ".contcar",
+    }
+    import os
+    _, ext = os.path.splitext(value.lower())
+    return ext in known_extensions
+
+
+def _check_path_refs(
+    payload: dict[str, Any], manifest_path: Path, uri: str
+) -> list[Diagnostic]:
+    """Check cross-file path references for MLIP-E086."""
+    diagnostics: list[Diagnostic] = []
+    manifest_dir = manifest_path.parent
+
+    # structure is always a file reference
+    value = payload.get("structure")
+    if isinstance(value, str):
+        referenced = manifest_dir / value
+        if not referenced.exists():
+            diagnostics.append(
+                Diagnostic(
+                    "MLIP-E086",
+                    "warning",
+                    f"manifest references file \'{value}\' which does not exist",
+                    _uri_to_path(uri),
+                    1,
+                    evidence=[f"Key \'structure\' references \'{value}\'"],
+                    suggested_fix={"kind": "create_missing_file", "path": value},
+                    confidence=0.8,
+                )
+            )
+
+    # model is checked only if it looks like a file path
+    model = payload.get("model")
+    if isinstance(model, str) and _looks_like_file_path(model):
+        referenced = manifest_dir / model
+        if not referenced.exists():
+            diagnostics.append(
+                Diagnostic(
+                    "MLIP-E086",
+                    "warning",
+                    f"manifest references file \'{model}\' which does not exist",
+                    _uri_to_path(uri),
+                    1,
+                    evidence=[f"Key \'model\' references \'{model}\'"],
+                    suggested_fix={"kind": "create_missing_file", "path": model},
+                    confidence=0.7,
+                )
+            )
+
+    return diagnostics
 
 
 def _compute_completions(uri: str, content: str, line: int, character: int) -> list[CompletionItem]:
@@ -203,15 +337,11 @@ def _compute_completions(uri: str, content: str, line: int, character: int) -> l
     suffix = path.suffix.lower()
 
     if suffix == ".json":
-        # Try to determine if we're inside a JSON object and suggest keys
         lines = content.splitlines()
         current_line = lines[line] if line < len(lines) else ""
         text_before = current_line[:character]
 
-        # Check if we're at a position where a key would be typed
-        # (after a comma or opening brace)
         if text_before.rstrip().endswith(",") or text_before.rstrip().endswith("{"):
-            # Parse existing keys to avoid suggesting duplicates
             try:
                 payload = json.loads(content)
                 existing_keys = set(payload) if isinstance(payload, dict) else set()
@@ -229,7 +359,6 @@ def _compute_completions(uri: str, content: str, line: int, character: int) -> l
                             documentation=MANIFEST_KEY_DOCS.get(key, ""),
                         )
                     )
-            # Also suggest optional keys
             for key in ("parameters", "output"):
                 if key not in existing_keys:
                     items.append(
@@ -242,8 +371,6 @@ def _compute_completions(uri: str, content: str, line: int, character: int) -> l
                     )
             return items
 
-        # Check if we're typing a value and should suggest model names
-        # Simple heuristic: look for "model": " before cursor
         model_match = re.search(r'"model"\s*:\s*"([^"]*)$', text_before)
         if model_match:
             prefix = model_match.group(1)
@@ -257,7 +384,6 @@ def _compute_completions(uri: str, content: str, line: int, character: int) -> l
                 if model.lower().startswith(prefix.lower())
             ]
 
-        # Suggest task values
         task_match = re.search(r'"task"\s*:\s*"([^"]*)$', text_before)
         if task_match:
             prefix = task_match.group(1)
@@ -271,12 +397,41 @@ def _compute_completions(uri: str, content: str, line: int, character: int) -> l
                 if task.lower().startswith(prefix.lower())
             ]
 
+    if suffix in (".yaml", ".yml"):
+        lines = content.splitlines()
+        current_line = lines[line] if line < len(lines) else ""
+        stripped = current_line.strip()
+
+        # Suggest top-level keys
+        if ":" not in stripped or stripped.endswith(":"):
+            word = stripped.rstrip(":").strip()
+            if not word:
+                items: list[CompletionItem] = []
+                for key in REQUIRED_JSON_KEYS:
+                    items.append(
+                        CompletionItem(
+                            label=f"{key}:",
+                            kind=CompletionItemKind.Property,
+                            detail=f"Required manifest key: {key}",
+                            documentation=MANIFEST_KEY_DOCS.get(key, ""),
+                        )
+                    )
+                for key in ("parameters", "output"):
+                    items.append(
+                        CompletionItem(
+                            label=f"{key}:",
+                            kind=CompletionItemKind.Property,
+                            detail=f"Optional manifest key: {key}",
+                            documentation=MANIFEST_KEY_DOCS.get(key, ""),
+                        )
+                    )
+                return items
+
     if suffix == ".py":
         lines = content.splitlines()
         current_line = lines[line] if line < len(lines) else ""
         text_before = current_line[:character]
 
-        # Complete common import patterns
         for prefix_str, options in PYTHON_COMPLETION_SNIPPETS.items():
             if text_before.strip().startswith(
                 prefix_str.rstrip(" ")
@@ -293,7 +448,6 @@ def _compute_completions(uri: str, content: str, line: int, character: int) -> l
                     )
                 ]
 
-        # Generic import completion
         if "from " in text_before and "import " not in text_before:
             return [
                 CompletionItem(label=f"from {m} import ", kind=CompletionItemKind.Module)
@@ -316,8 +470,6 @@ def _compute_hover(uri: str, content: str, line: int, character: int) -> str | N
         return None
 
     if suffix == ".json":
-        # Check if we're hovering over a JSON key
-        # Find the key under cursor
         key_match = re.match(r'\s*"([^"]+)"\s*:', current_line)
         if key_match:
             key = key_match.group(1)
@@ -327,7 +479,6 @@ def _compute_hover(uri: str, content: str, line: int, character: int) -> str | N
                 models_str = ", ".join(KNOWN_MLIP_MODELS)
                 return f"**model**  \nMLIP model identifier. Known models: {models_str}"
 
-        # Check if hovering over a model value
         model_val_match = re.search(r'"model"\s*:\s*"([^"]*)"', current_line)
         if model_val_match and model_val_match.start() <= character <= model_val_match.end():
             val = model_val_match.group(1)
@@ -336,15 +487,22 @@ def _compute_hover(uri: str, content: str, line: int, character: int) -> str | N
                     f"**{val}**  \nMLIP potential model. See MatMaster documentation for details."
                 )
 
-        # Check if hovering over a task value
         task_val_match = re.search(r'"task"\s*:\s*"([^"]*)"', current_line)
         if task_val_match and task_val_match.start() <= character <= task_val_match.end():
             val = task_val_match.group(1)
             return f"**{val}**  \nMLIP computation task type."
 
-    # General keyword hover for any file type
-    word = current_line[character : character + 1]
-    # Try to find the word at cursor
+    if suffix in (".yaml", ".yml"):
+        stripped = current_line.strip()
+        if ":" in stripped:
+            key = stripped.split(":")[0].strip()
+            if key in MANIFEST_KEY_DOCS:
+                return f"**{key}**  \n{MANIFEST_KEY_DOCS[key]}"
+            if key == "model":
+                models_str = ", ".join(KNOWN_MLIP_MODELS)
+                return f"**model**  \nMLIP model identifier. Known models: {models_str}"
+
+    # Extract word at cursor
     word_start = character
     while word_start > 0 and re.match(r"[\w.]", current_line[word_start - 1]):
         word_start -= 1
@@ -353,29 +511,10 @@ def _compute_hover(uri: str, content: str, line: int, character: int) -> str | N
         word_end += 1
     word = current_line[word_start:word_end] if word_end > word_start else ""
 
-    if word:
-        if suffix == ".py":
-            if word == "ase":
-                return "**ASE**  \nAtomic Simulation Environment for atomistic simulations."
-            if word == "Atoms":
-                return "**Atoms**  \nASE object representing a collection of atoms."
-            if word == "structure":
-                return (
-                    "**structure**  \n"
-                    "Expected ASE Atoms object for MLIP workflow with a .calc attribute."
-                )
-            if word == "BFGS":
-                return "**BFGS**  \nASE optimizer using the BFGS algorithm."
-            if word == "MLIPCalculator":
-                return (
-                    "**MLIPCalculator**  \n"
-                    "ASE calculator wrapping an MLIP model for energy/force predictions."
-                )
-            if word == "calc":
-                return (
-                    "**calc**  \n"
-                    "ASE calculator attached to an Atoms object for DFT or MLIP computations."
-                )
+    if word and suffix == ".py":
+        doc = PYTHON_HOVER_DOCS.get(word)
+        if doc:
+            return doc
 
     return None
 
@@ -383,44 +522,168 @@ def _compute_hover(uri: str, content: str, line: int, character: int) -> str | N
 def _compute_code_actions(
     uri: str, content: str, diagnostics: list[Diagnostic]
 ) -> list[CodeAction | Command]:
-    """Compute code actions based on diagnostics."""
+    """Compute code actions with proper WorkspaceEdit support."""
     actions: list[CodeAction | Command] = []
     path = Path(_uri_to_path(uri))
     suffix = path.suffix.lower()
 
     for diag in diagnostics:
-        if diag.code == "MLIP101" and diag.suggested_fix:
-            fix = diag.suggested_fix
-            kind = fix.get("kind", "")
-            if kind == "add_json_key" and suffix == ".json":
-                key = fix.get("key", "")
-                title = f"Add missing key '{key}'"
-                # Create a text edit that adds the key
-                try:
-                    payload = json.loads(content) if content.strip() else {}
-                except json.JSONDecodeError:
-                    payload = {}
-                if isinstance(payload, dict) and key not in payload:
-                    # Add the key to the JSON
-                    actions.append(
-                        CodeAction(
-                            title=title,
-                            kind=CodeActionKind.QuickFix,
-                            edit=None,  # Simplified: edit needs workspace edit
-                            diagnostics=None,
-                        )
-                    )
-            elif kind == "add_import" and suffix == ".py":
-                module = fix.get("module", "")
-                title = f"Add import for '{module}'"
+        fix = diag.suggested_fix
+        if fix is None:
+            continue
+        kind = fix.get("kind", "")
+
+        if kind == "add_json_key" and suffix == ".json":
+            key = fix.get("key", "")
+            title = f"Add missing key '{key}'"
+            try:
+                payload = json.loads(content) if content.strip() else {}
+            except json.JSONDecodeError:
+                payload = {}
+            if isinstance(payload, dict) and key not in payload:
+                payload[key] = ""
+                new_text = json.dumps(payload, indent=2) + "\n"
+                lines = content.splitlines()
+                last_line = max(len(lines) - 1, 0)
+                last_char = len(lines[-1]) if lines else 0
                 actions.append(
                     CodeAction(
                         title=title,
                         kind=CodeActionKind.QuickFix,
-                        edit=None,
+                        edit=WorkspaceEdit(
+                            document_changes=[
+                                TextDocumentEdit(
+                                    text_document=OptionalVersionedTextDocumentIdentifier(
+                                        uri=uri, version=None
+                                    ),
+                                    edits=[
+                                        TextEdit(
+                                            range=Range(
+                                                start=Position(line=0, character=0),
+                                                end=Position(
+                                                    line=last_line, character=last_char
+                                                ),
+                                            ),
+                                            new_text=new_text,
+                                        )
+                                    ],
+                                )
+                            ]
+                        ),
                         diagnostics=None,
                     )
                 )
+
+        elif kind == "add_json_key" and suffix in (".yaml", ".yml"):
+            key = fix.get("key", "")
+            title = f"Add missing key '{key}'"
+            try:
+                payload = yaml.safe_load(content) if content.strip() else {}
+            except yaml.YAMLError:
+                payload = {}
+            if isinstance(payload, dict) and key not in payload:
+                payload[key] = ""
+                new_text = yaml.dump(payload, default_flow_style=False, sort_keys=True)
+                lines = content.splitlines()
+                last_line = max(len(lines) - 1, 0)
+                last_char = len(lines[-1]) if lines else 0
+                actions.append(
+                    CodeAction(
+                        title=title,
+                        kind=CodeActionKind.QuickFix,
+                        edit=WorkspaceEdit(
+                            document_changes=[
+                                TextDocumentEdit(
+                                    text_document=OptionalVersionedTextDocumentIdentifier(
+                                        uri=uri, version=None
+                                    ),
+                                    edits=[
+                                        TextEdit(
+                                            range=Range(
+                                                start=Position(line=0, character=0),
+                                                end=Position(
+                                                    line=last_line, character=last_char
+                                                ),
+                                            ),
+                                            new_text=new_text,
+                                        )
+                                    ],
+                                )
+                            ]
+                        ),
+                        diagnostics=None,
+                    )
+                )
+
+        elif kind == "add_import" and suffix == ".py":
+            module = fix.get("module", "")
+            title = f"Add import for '{module}'"
+            new_text = f"from {module} import Atoms\n{content}"
+            lines = content.splitlines()
+            last_line = max(len(lines) - 1, 0)
+            last_char = len(lines[-1]) if lines else 0
+            actions.append(
+                CodeAction(
+                    title=title,
+                    kind=CodeActionKind.QuickFix,
+                    edit=WorkspaceEdit(
+                        document_changes=[
+                            TextDocumentEdit(
+                                text_document=OptionalVersionedTextDocumentIdentifier(
+                                    uri=uri, version=None
+                                ),
+                                edits=[
+                                    TextEdit(
+                                        range=Range(
+                                            start=Position(line=0, character=0),
+                                            end=Position(
+                                                line=last_line, character=last_char
+                                            ),
+                                        ),
+                                        new_text=new_text,
+                                    )
+                                ],
+                            )
+                        ]
+                    ),
+                    diagnostics=None,
+                )
+            )
+
+        elif kind == "add_symbol" and suffix == ".py":
+            symbol = fix.get("symbol", "")
+            title = f"Add symbol '{symbol}'"
+            new_text = f"{content}\n{symbol} = None  # TODO: define {symbol}\n"
+            lines = content.splitlines()
+            last_line = max(len(lines) - 1, 0)
+            last_char = len(lines[-1]) if lines else 0
+            actions.append(
+                CodeAction(
+                    title=title,
+                    kind=CodeActionKind.QuickFix,
+                    edit=WorkspaceEdit(
+                        document_changes=[
+                            TextDocumentEdit(
+                                text_document=OptionalVersionedTextDocumentIdentifier(
+                                    uri=uri, version=None
+                                ),
+                                edits=[
+                                    TextEdit(
+                                        range=Range(
+                                            start=Position(line=0, character=0),
+                                            end=Position(
+                                                line=last_line, character=last_char
+                                            ),
+                                        ),
+                                        new_text=new_text,
+                                    )
+                                ],
+                            )
+                        ]
+                    ),
+                    diagnostics=None,
+                )
+            )
 
     return actions
 
@@ -453,14 +716,12 @@ class MLIPServer:
         @server.feature(TEXT_DOCUMENT_DID_CHANGE)
         def did_change(params: DidChangeTextDocumentParams) -> None:
             uri = params.text_document.uri
-            # Use the full content from the last change event
             content = params.content_changes[-1].text
             self._publish_diagnostics(uri, content)
 
         @server.feature(TEXT_DOCUMENT_COMPLETION)
         def completion(params: CompletionParams) -> CompletionList | None:
             uri = params.text_document.uri
-            # We need access to the document content
             doc = server.workspace.get_text_document(uri)
             items = _compute_completions(
                 uri,
@@ -494,10 +755,10 @@ class MLIPServer:
             uri = params.text_document.uri
             try:
                 doc = server.workspace.get_text_document(uri)
-                formatted = format_text(doc.source)
+                suffix = Path(_uri_to_path(uri)).suffix.lower()
+                formatted = safe_format(doc.source, suffix)
                 if formatted == doc.source:
                     return None
-                # Return a single edit replacing the entire document
                 lines = doc.source.splitlines()
                 last_line = max(len(lines) - 1, 0)
                 last_char = len(lines[-1]) if lines else 0

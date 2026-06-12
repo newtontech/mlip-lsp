@@ -1,0 +1,3 @@
+model: DPA3.1-3M
+  bad_indent: true
+structure: input.cif

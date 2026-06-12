@@ -2,18 +2,28 @@ from __future__ import annotations
 
 import ast
 import json
+import os
 import re
 from pathlib import Path
+from typing import Any
+
+import yaml
 
 from .diagnostics import Diagnostic
+from .features.formatter import format_text, safe_format
+from .features.log_parser import log_diagnostics
+from .features.matmaster import (
+    MANIFEST_EXTENSIONS,
+    validate_manifest_structure,
+)
 
 DOMAIN_NAME = "MLIP"
 DOMAIN_ID = "mlip"
 DOMAIN_KIND = "json"
 CODE_PREFIX = "MLIP"
-FILE_PATTERNS: list[str] = ["*.json", "*.py"]
+FILE_PATTERNS: list[str] = ["*.json", "*.yaml", "*.yml", "*.py", "*.log"]
 FILE_NAMES: list[str] = []
-FILE_SUFFIXES: list[str] = [".json", ".py"]
+FILE_SUFFIXES: list[str] = [".json", ".yaml", ".yml", ".py", ".log"]
 KNOWN_TOKENS: list[str] = []
 REQUIRED_TOKENS: list[str] = []
 REQUIRED_IMPORTS: list[str] = ["ase"]
@@ -21,6 +31,28 @@ REQUIRED_SYMBOLS: list[str] = ["structure"]
 REQUIRED_JSON_KEYS: list[str] = ["model", "structure", "task"]
 
 COMMENT_PREFIXES = ("#", "!", ";")
+
+# ---------------------------------------------------------------------------
+# Path reference helpers
+# ---------------------------------------------------------------------------
+
+_FILE_PATH_EXTENSIONS = frozenset({
+    ".txt", ".json", ".yaml", ".yml", ".py", ".pb", ".onnx",
+    ".pt", ".pth", ".bin", ".cif", ".xyz", ".poscar", ".contcar",
+})
+
+
+def _looks_like_file_path(value: str) -> bool:
+    """Return True if the value looks like a file path."""
+    if "/" in value or "\\" in value:
+        return True
+    _, ext = os.path.splitext(value.lower())
+    return ext in _FILE_PATH_EXTENSIONS
+
+
+# ---------------------------------------------------------------------------
+# Top-level analysis API
+# ---------------------------------------------------------------------------
 
 
 def analyze_path(path: Path) -> list[Diagnostic]:
@@ -69,11 +101,186 @@ def analyze_file(path: Path) -> list[Diagnostic]:
         return [
             Diagnostic(f"{CODE_PREFIX}202", "error", "file is not valid UTF-8 text", str(path), 1)
         ]
-    if DOMAIN_KIND == "python":
+    suffix = path.suffix.lower()
+    if suffix == ".json":
+        return _analyze_json(path, content)
+    if suffix in (".yaml", ".yml"):
+        return _analyze_yaml(path, content)
+    if suffix == ".py":
         return _analyze_python(path, content)
-    if DOMAIN_KIND == "json":
-        return _analyze_json_or_text(path, content)
+    if suffix == ".log":
+        return log_diagnostics(content, str(path))
     return _analyze_text(path, content)
+
+
+# ---------------------------------------------------------------------------
+# JSON analysis (MLIP-E080, E082, E083, E084, E086)
+# ---------------------------------------------------------------------------
+
+
+def _analyze_json(path: Path, content: str) -> list[Diagnostic]:
+    """Analyze a JSON manifest with MLIP-prefixed codes."""
+    try:
+        payload = json.loads(content)
+    except json.JSONDecodeError as exc:
+        return [
+            Diagnostic(
+                "MLIP-E080",
+                "error",
+                f"JSON manifest cannot be parsed: {exc.msg}",
+                str(path),
+                exc.lineno,
+                exc.colno,
+                suggested_fix={"kind": "fix_json_syntax", "detail": exc.msg},
+                confidence=0.95,
+            )
+        ]
+    diagnostics: list[Diagnostic] = []
+    if isinstance(payload, dict):
+        diagnostics.extend(validate_manifest_structure(payload, str(path)))
+        diagnostics.extend(_check_path_references(payload, path))
+    return diagnostics
+
+
+# ---------------------------------------------------------------------------
+# YAML analysis (MLIP-E081, E082, E083, E084, E086)
+# ---------------------------------------------------------------------------
+
+
+def _analyze_yaml(path: Path, content: str) -> list[Diagnostic]:
+    """Analyze a YAML manifest with MLIP-prefixed codes."""
+    try:
+        payload = yaml.safe_load(content)
+    except yaml.YAMLError as exc:
+        detail = str(exc) if exc else "unknown YAML error"
+        line = 1
+        if hasattr(exc, "problem_mark") and exc.problem_mark is not None:
+            line = exc.problem_mark.line + 1
+        return [
+            Diagnostic(
+                "MLIP-E081",
+                "error",
+                f"YAML manifest cannot be parsed: {detail}",
+                str(path),
+                line,
+                suggested_fix={"kind": "fix_yaml_syntax", "detail": detail},
+                confidence=0.95,
+            )
+        ]
+    diagnostics: list[Diagnostic] = []
+    if isinstance(payload, dict):
+        diagnostics.extend(validate_manifest_structure(payload, str(path)))
+        diagnostics.extend(_check_path_references(payload, path))
+    return diagnostics
+
+
+# ---------------------------------------------------------------------------
+# Cross-file path reference check (MLIP-E086)
+# ---------------------------------------------------------------------------
+
+
+def _check_path_references(payload: dict[str, Any], manifest_path: Path) -> list[Diagnostic]:
+    """Check that file references in the manifest exist (MLIP-E086).
+
+    Only checks 'structure' (always a file) and 'model' (only when it looks
+    like an actual file path with a recognized extension).
+    """
+    diagnostics: list[Diagnostic] = []
+    manifest_dir = manifest_path.parent
+
+    # structure is always a file reference
+    value = payload.get("structure")
+    if isinstance(value, str):
+        referenced = manifest_dir / value
+        if not referenced.exists():
+            diagnostics.append(
+                Diagnostic(
+                    "MLIP-E086",
+                    "warning",
+                    f"manifest references file '{value}' which does not exist",
+                    str(manifest_path),
+                    1,
+                    evidence=[f"Key 'structure' references '{value}'"],
+                    suggested_fix={"kind": "create_missing_file", "path": value},
+                    confidence=0.8,
+                )
+            )
+
+    # model is checked only if it looks like a file path
+    model = payload.get("model")
+    if isinstance(model, str) and _looks_like_file_path(model):
+        referenced = manifest_dir / model
+        if not referenced.exists():
+            diagnostics.append(
+                Diagnostic(
+                    "MLIP-E086",
+                    "warning",
+                    f"manifest references file '{model}' which does not exist",
+                    str(manifest_path),
+                    1,
+                    evidence=[f"Key 'model' references '{model}'"],
+                    suggested_fix={"kind": "create_missing_file", "path": model},
+                    confidence=0.7,
+                )
+            )
+
+    return diagnostics
+
+
+# ---------------------------------------------------------------------------
+# Python analysis (MLIP-W080, MLIP-E085)
+# ---------------------------------------------------------------------------
+
+
+def _analyze_python(path: Path, content: str) -> list[Diagnostic]:
+    """Analyze a Python script with MLIP-prefixed codes."""
+    diagnostics: list[Diagnostic] = []
+    try:
+        tree = ast.parse(content)
+    except SyntaxError as exc:
+        return [
+            Diagnostic(
+                "MLIP-E080", "error", exc.msg, str(path), exc.lineno or 1, exc.offset or 1
+            )
+        ]
+    names = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
+    attrs = {node.attr for node in ast.walk(tree) if isinstance(node, ast.Attribute)}
+    imports = _import_names(tree)
+
+    # MLIP-W080: missing ASE import
+    if "ase" not in imports and "ase" not in names:
+        diagnostics.append(
+            Diagnostic(
+                "MLIP-W080",
+                "warning",
+                "expected import or symbol 'ase' was not found",
+                str(path),
+                1,
+                suggested_fix={"kind": "add_import", "module": "ase"},
+                confidence=0.75,
+            )
+        )
+
+    # MLIP-E085: missing structure symbol
+    if "structure" not in names and "structure" not in attrs and "structure" not in content:
+        diagnostics.append(
+            Diagnostic(
+                "MLIP-E085",
+                "error",
+                "expected workflow symbol 'structure' was not found",
+                str(path),
+                1,
+                suggested_fix={"kind": "add_symbol", "symbol": "structure"},
+                confidence=0.68,
+            )
+        )
+
+    return diagnostics
+
+
+# ---------------------------------------------------------------------------
+# Text analysis (NEP configs, etc.)
+# ---------------------------------------------------------------------------
 
 
 def _analyze_text(path: Path, content: str) -> list[Diagnostic]:
@@ -108,169 +315,12 @@ def _analyze_text(path: Path, content: str) -> list[Diagnostic]:
                     confidence=0.55,
                 )
             )
-    diagnostics.extend(_domain_text_checks(path, content, meaningful))
     return diagnostics
 
 
-def _domain_text_checks(
-    path: Path, content: str, meaningful: list[tuple[int, str]]
-) -> list[Diagnostic]:
-    diagnostics: list[Diagnostic] = []
-    lower_name = path.name.lower()
-    if DOMAIN_ID == "gpumd" and lower_name == "run.in":
-        first = meaningful[0][1].split()[0].lower() if meaningful else ""
-        if first != "potential":
-            diagnostics.append(
-                Diagnostic(
-                    "GPUMD010",
-                    "error",
-                    "GPUMD run.in should start with the potential command",
-                    str(path),
-                    meaningful[0][0] if meaningful else 1,
-                    evidence=["MatMaster GPUMD guard: potential must be first non-comment command"],
-                    suggested_fix={
-                        "kind": "move_command",
-                        "command": "potential",
-                        "position": "first",
-                    },
-                    confidence=0.9,
-                )
-            )
-        run_lines = [line_no for line_no, line in meaningful if line.lower().startswith("run ")]
-        compute_lines = [
-            line_no
-            for line_no, line in meaningful
-            if line.lower().startswith(("compute_", "dump_"))
-        ]
-        if compute_lines and run_lines and min(compute_lines) > min(run_lines):
-            diagnostics.append(
-                Diagnostic(
-                    "GPUMD011",
-                    "warning",
-                    "declare compute/dump commands before their run block",
-                    str(path),
-                    min(compute_lines),
-                    confidence=0.8,
-                )
-            )
-    if DOMAIN_ID == "abinit":
-        has_structure = any(
-            token in content.lower() for token in ("natom", "xred", "xcart", "znucl", "typat")
-        )
-        if not has_structure:
-            diagnostics.append(
-                Diagnostic(
-                    "ABINIT010",
-                    "warning",
-                    "ABINIT input does not expose enough structure variables for static review",
-                    str(path),
-                    1,
-                    suggested_fix={
-                        "kind": "add_structure_block",
-                        "tokens": ["natom", "znucl", "typat", "xred"],
-                    },
-                    confidence=0.7,
-                )
-            )
-    return diagnostics
-
-
-def _analyze_python(path: Path, content: str) -> list[Diagnostic]:
-    diagnostics: list[Diagnostic] = []
-    try:
-        tree = ast.parse(content)
-    except SyntaxError as exc:
-        return [
-            Diagnostic(
-                f"{CODE_PREFIX}001", "error", exc.msg, str(path), exc.lineno or 1, exc.offset or 1
-            )
-        ]
-    names = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
-    attrs = {node.attr for node in ast.walk(tree) if isinstance(node, ast.Attribute)}
-    imports = _import_names(tree)
-    for required in REQUIRED_IMPORTS:
-        if required not in imports and required not in names:
-            diagnostics.append(
-                Diagnostic(
-                    f"{CODE_PREFIX}101",
-                    "warning",
-                    f"expected import or symbol '{required}' was not found",
-                    str(path),
-                    1,
-                    suggested_fix={"kind": "add_import", "module": required},
-                    confidence=0.75,
-                )
-            )
-    for symbol in REQUIRED_SYMBOLS:
-        if symbol not in names and symbol not in attrs and symbol not in content:
-            diagnostics.append(
-                Diagnostic(
-                    f"{CODE_PREFIX}102",
-                    "warning",
-                    f"expected workflow symbol '{symbol}' was not found",
-                    str(path),
-                    1,
-                    confidence=0.68,
-                )
-            )
-    if (
-        DOMAIN_ID == "pyscf"
-        and "kernel" in attrs
-        and "converged" not in attrs
-        and "converged" not in content
-    ):
-        diagnostics.append(
-            Diagnostic(
-                "PYSCF010",
-                "warning",
-                "PySCF scripts should check mf.converged after kernel/run calls",
-                str(path),
-                1,
-                suggested_fix={"kind": "check_convergence", "symbol": "mf.converged"},
-                confidence=0.8,
-            )
-        )
-    if DOMAIN_ID == "pyatb" and "HR.dat" not in content and "hr_file" not in content:
-        diagnostics.append(
-            Diagnostic(
-                "PYATB010",
-                "warning",
-                "PyATB workflow should reference HR.dat or hr_file",
-                str(path),
-                1,
-                confidence=0.75,
-            )
-        )
-    return diagnostics
-
-
-def _analyze_json_or_text(path: Path, content: str) -> list[Diagnostic]:
-    if path.suffix.lower() != ".json":
-        return (
-            _analyze_python(path, content)
-            if path.suffix.lower() == ".py"
-            else _analyze_text(path, content)
-        )
-    try:
-        payload = json.loads(content)
-    except json.JSONDecodeError as exc:
-        return [Diagnostic(f"{CODE_PREFIX}001", "error", exc.msg, str(path), exc.lineno, exc.colno)]
-    diagnostics: list[Diagnostic] = []
-    if isinstance(payload, dict):
-        for key in REQUIRED_JSON_KEYS:
-            if key not in payload:
-                diagnostics.append(
-                    Diagnostic(
-                        f"{CODE_PREFIX}101",
-                        "warning",
-                        f"manifest is missing required key '{key}'",
-                        str(path),
-                        1,
-                        suggested_fix={"kind": "add_json_key", "key": key},
-                        confidence=0.78,
-                    )
-                )
-    return diagnostics
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
 
 def _import_names(tree: ast.AST) -> set[str]:
@@ -292,22 +342,3 @@ def _meaningful_lines(content: str) -> list[tuple[int, str]]:
             continue
         result.append((line_no, stripped))
     return result
-
-
-def format_text(content: str) -> str:
-    lines: list[str] = []
-    for raw in content.splitlines():
-        stripped = raw.strip()
-        if not stripped or stripped.startswith(COMMENT_PREFIXES):
-            lines.append(raw.rstrip())
-            continue
-        if "=" in stripped:
-            key, value = stripped.split("=", 1)
-            lines.append(f"{key.strip():<24} = {value.strip()}")
-        else:
-            parts = stripped.split(maxsplit=1)
-            if len(parts) == 2 and re.match(r"^[A-Za-z_][A-Za-z0-9_\-.]*$", parts[0]):
-                lines.append(f"{parts[0]:<24} {parts[1].strip()}")
-            else:
-                lines.append(stripped)
-    return "\n".join(lines).rstrip() + "\n"

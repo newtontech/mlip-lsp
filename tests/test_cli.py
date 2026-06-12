@@ -32,7 +32,7 @@ class TestLintCLI:
         captured = capsys.readouterr()
         data = json.loads(captured.out)
         assert isinstance(data, list)
-        assert any(d["code"] == "MLIP101" for d in data)
+        assert any(d["code"] in ("MLIP-E082", "MLIP-E083", "MLIP-E084") for d in data)
 
     def test_lint_empty_dir(self, tmp_path: Path) -> None:
         rc = lint_main([str(tmp_path)])
@@ -44,7 +44,25 @@ class TestLintCLI:
         lint_main([str(fixture)])
         captured = capsys.readouterr()
         assert "error" in captured.out
-        assert "MLIP001" in captured.out
+        assert "MLIP-E080" in captured.out
+
+    def test_lint_yaml_valid(self, tmp_path: Path) -> None:
+        fixture = tmp_path / "good.yaml"
+        fixture.write_text(
+            "model: DPA3.1-3M\nstructure: input.cif\ntask: optimize\n",
+            encoding="utf-8",
+        )
+        rc = lint_main([str(fixture)])
+        assert rc == 0
+
+    def test_lint_yaml_invalid(self, tmp_path: Path) -> None:
+        fixture = tmp_path / "bad.yaml"
+        fixture.write_text(
+            "model: DPA3.1-3M\n  bad_indent: true\n",
+            encoding="utf-8",
+        )
+        rc = lint_main([str(fixture)])
+        assert rc == 1
 
 
 class TestFmtCLI:
@@ -75,9 +93,6 @@ class TestFmtCLI:
 
 class TestLspCLI:
     def test_lsp_stdio_flag(self) -> None:
-        # Starting the real LSP server on stdio blocks during pytest
-        # Instead, verify that calling --stdio raises the expected error
-        # from the asyncio event loop (stdin captured by pytest)
         with pytest.raises(SystemExit):
             lsp_main([])
 

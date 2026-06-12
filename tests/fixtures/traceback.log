@@ -1,0 +1,6 @@
+Starting MLIP calculation...
+Traceback (most recent call last):
+  File "run.py", line 5, in <module>
+    calc = MLIPCalculator(model='bad')
+RuntimeError: Model not found
+Done.
