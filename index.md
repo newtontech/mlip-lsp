@@ -15,7 +15,12 @@ mlip-lsp/
 │   ├── valid_manifest.json  # 有效清单示例
 │   ├── valid_ase_script.py   # 有效Python示例
 │   ├── nep_config.txt        # NEP配置示例
-│   └── README.md             # 项目概述
+│   ├── README.md             # 项目概述
+│   ├── mlip-readme.md        # 各MLIP项目README合集
+│   ├── mtp-documentation.md  # MTP完整文档
+│   ├── mlip-input-format.md  # 输入文件格式参考
+│   ├── mlip-examples.md      # 训练脚本和示例
+│   └── mlip-cli-reference.md # CLI工具参考
 ├── wiki/
 │   ├── entities/         # MLIP领域实体
 │   ├── concepts/         # 跨领域概念
@@ -42,7 +47,10 @@ Python原子模拟环境及其在MLIP工作流中的角色
 支持的结构文件格式（CIF, XYZ, POSCAR等）
 
 ### [NEP 配置文件 / NEP Configuration](wiki/entities/NEP_Configuration.md)
-神经进化势训练配置文件格式
+神经进化势训练配置文件格式（完整nep.in参数参考）
+
+### [MTP 文档 / MTP Documentation](wiki/entities/MTP_Documentation.md)
+矩张量势MLIP-2包文档、CLI命令和主动学习工作流
 
 ## 概念 / Concepts (跨领域思想)
 
@@ -60,6 +68,9 @@ MatMaster期望的manifest结构和验证规则
 
 ### [安全格式化 / Safe Formatting](wiki/concepts/Safe_Formatting.md)
 保证永不抛出的文档格式化
+
+### [MLIP 训练工作流 / MLIP Training Workflows](wiki/concepts/MLIP_Training_Workflows.md)
+各MLIP框架的典型训练流程和最佳实践
 
 ### [CLI 工具链 / CLI Toolchain](wiki/concepts/CLI_Toolchain.md)
 命令行工具（mlip-lint, mlip-fmt, mlip-test等）
@@ -112,8 +123,23 @@ mlip-lsp --stdio
 ## 外部链接 / External Links
 
 - [项目README](raw/assets/README.md)
+- [MLIP生态README合集](raw/assets/mlip-readme.md) — NequIP, Allegro, MACE, DeePMD-kit, ACE, MALA
+- [MTP文档](raw/assets/mtp-documentation.md) — Moment Tensor Potential完整文档
+- [输入格式参考](raw/assets/mlip-input-format.md) — NEP, MTP, MACE, DeePMD-kit, NequIP, ACE格式
+- [训练示例](raw/assets/mlip-examples.md) — 各框架训练脚本
+- [CLI参考](raw/assets/mlip-cli-reference.md) — mlp, mace_run_train, dp, nequip-train, nep命令
 - [诊断引擎文档](raw/assets/DIAGNOSTIC_ENGINE_V1.md)
 - [原始源代码](https://github.com/newtontech/mlip-lsp)
+
+### MLIP框架链接 / MLIP Framework Links
+- [NequIP](https://github.com/mir-group/nequip) — E(3)-equivariant interatomic potentials
+- [Allegro](https://github.com/mir-group/allegro) — Local equivariant representations
+- [MACE](https://github.com/acesuit/mace) — Higher order equivariant message passing
+- [DeePMD-kit](https://github.com/deepmodeling/deepmd-kit) — Deep Potential models
+- [ACEpotentials.jl](https://github.com/ACEsuit/ACEpotentials.jl) — Atomic Cluster Expansion (Julia)
+- [MLIP-2 (MTP)](https://gitlab.com/ashapeev/mlip-2) — Moment Tensor Potentials
+- [GPUMD/NEP](https://gpumd.org/) — Neuroevolution Potentials
+- [MALA](https://github.com/mala-project/mala) — Materials Learning Algorithms
 
 ## 变更历史 / Change History
 

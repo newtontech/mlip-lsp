@@ -68,3 +68,44 @@
 - [ ] 添加Bohrium集成文档
 - [ ] 创建OpenQC集成示例
 - [ ] 添加性能分析工作流
+- [ ] 添加NEP配置文件的关键字补全支持
+- [ ] 添加MTP .cfg文件的语法高亮
+- [ ] 添加MACE YAML配置的LSP支持
+- [ ] 添加DeePMD-kit JSON配置的验证
+
+## 2026-06-12
+
+### 新增 / Added
+
+#### MLIP生态文档收集 / MLIP Ecosystem Documentation Collection
+
+##### 原始证据文件 / Raw Evidence Files (5 new)
+- `mlip-readme.md` — NequIP, Allegro, MACE, DeePMD-kit, ACE, MALA README合集
+- `mtp-documentation.md` — MLIP-2/MTP完整文档（CLI命令、文件格式、主动学习）
+- `mlip-input-format.md` — NEP nep.in, MTP .mtp/.cfg, MACE YAML, DeePMD-kit JSON, NequIP YAML, ACE Julia格式
+- `mlip-examples.md` — 各框架训练脚本和ASE集成示例
+- `mlip-cli-reference.md` — mlp, mace_run_train, dp, nequip-train, nep CLI命令参考
+
+##### 实体页面 / Entity Pages (1 new)
+- `MTP_Documentation.md` — 矩张量势MLIP-2包文档、CLI命令和主动学习工作流
+
+##### 概念页面 / Concept Pages (1 new)
+- `MLIP_Training_Workflows.md` — 各MLIP框架的典型训练流程和最佳实践
+
+##### 更新页面 / Updated Pages (3)
+- `MLIP_Models.md` — 扩展为完整模型对比（DPA, MACE, NEP, MTP, NequIP, Allegro, ACE, MALA）
+- `NEP_Configuration.md` — 添加完整nep.in参数参考（30+参数）
+- `Input_Format_Reference.md` — 添加各框架特定格式（MTP, DeePMD-kit, MACE, NequIP, ACE）
+
+##### 导航更新 / Navigation Updates
+- `index.md` — 添加新页面链接、MLIP框架外部链接、扩展目录结构
+- `log.md` — 本更新
+
+### 统计 / Statistics
+
+- **总页面数**: 19 (+2)
+- **实体页面**: 7 (+1)
+- **概念页面**: 7 (+1)
+- **综合页面**: 4
+- **原始证据**: 12 (+5)
+- **导航文件**: 2

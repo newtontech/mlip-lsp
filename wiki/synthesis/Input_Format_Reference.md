@@ -149,8 +149,67 @@ Done.
   - `md`: 推荐`temperature`, `steps`
 - **诊断**: MLIP-E083 (缺少推荐参数)
 
+## MLIP 框架特定格式 / Framework-Specific Formats
+
+### MTP 文件格式 (.mtp)
+MLIP-2包的矩张量势文件。包含拟合的MTP参数。作为 `mlp train` 的输入和输出。
+
+### MTP 训练数据 (.cfg)
+MLIP内部配置/训练数据格式。包含原子结构及其从头算数据。
+
+### DeePMD-kit 参数文件 (JSON/YAML)
+```json
+{
+  "model": {
+    "type_map": ["C", "H", "O"],
+    "descriptor": {
+      "type": "se_e2_a",
+      "sel": [16, 32, 16],
+      "rcut": 6.0
+    },
+    "fitting_net": {
+      "neuron": [240, 240, 240]
+    }
+  }
+}
+```
+
+### MACE 配置文件 (YAML)
+```yaml
+name: MACE_model
+train_file: train.xyz
+model: MACE
+hidden_irreps: "128x0e + 128x1o"
+r_max: 5.0
+batch_size: 10
+max_num_epochs: 1500
+```
+
+### NequIP/Allegro 配置文件 (YAML, Hydra格式)
+```yaml
+run: [train, test]
+cutoff_radius: 5.0
+chemical_symbols: [C, O, H]
+training_module:
+  model:
+    _target_: allegro.model.AllegroModel
+    l_max: 1
+    num_layers: 2
+```
+
+### ACEpotentials.jl 训练脚本 (Julia)
+```julia
+using ACEpotentials
+model = ace1_model(species=[:Si], N=3, maxdeg=12, rcut=5.5)
+data = read_extxyz("train.xyz")
+potential = fit!(model, data; energy_key="dft_energy")
+```
+
 ## 相关文件 / Related Files
 
 - `raw/assets/valid_manifest.json` - 有效JSON示例
-- `raw/assets/valid_manifest.yaml` - 有效YAML示例
 - `raw/assets/valid_ase_script.py` - 有效Python示例
+- `raw/assets/mlip-input-format.md` - 完整输入格式参考
+- `raw/assets/mlip-examples.md` - 各框架训练示例
+- `raw/assets/mlip-cli-reference.md` - CLI工具参考
+- `raw/assets/mlip-readme.md` - 各MLIP项目README
