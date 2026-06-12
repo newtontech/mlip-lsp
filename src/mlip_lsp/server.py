@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 from lsprotocol.types import (
     TEXT_DOCUMENT_CODE_ACTION,
     TEXT_DOCUMENT_COMPLETION,
@@ -33,20 +33,17 @@ from lsprotocol.types import (
     HoverParams,
     MarkupContent,
     MarkupKind,
+    OptionalVersionedTextDocumentIdentifier,
     Position,
-    PublishDiagnosticsParams,
     Range,
+    TextDocumentEdit,
     TextEdit,
+    WorkspaceEdit,
 )
 from lsprotocol.types import (
     Diagnostic as LspDiagnostic,
 )
-from lsprotocol.types import (
-    OptionalVersionedTextDocumentIdentifier,
-    TextDocumentEdit,
-    WorkspaceEdit,
-)
-from pygls.lsp.server import LanguageServer
+from pygls.server import LanguageServer
 
 from .analyzer import REQUIRED_JSON_KEYS, format_text
 from .diagnostics import Diagnostic
@@ -106,15 +103,15 @@ PYTHON_COMPLETION_SNIPPETS = {
 PYTHON_HOVER_DOCS: dict[str, str] = {
     "ase": "**ASE**  \nAtomic Simulation Environment for atomistic simulations.",
     "Atoms": "**Atoms**  \nASE object representing a collection of atoms.",
-    "structure": "**structure**  \nExpected ASE Atoms object for MLIP workflow with a .calc attribute.",
+    "structure": (
+        "**structure**  \nExpected ASE Atoms object for MLIP workflow with a .calc attribute."
+    ),
     "BFGS": "**BFGS**  \nASE optimizer using the BFGS algorithm.",
     "MLIPCalculator": (
-        "**MLIPCalculator**  \n"
-        "ASE calculator wrapping an MLIP model for energy/force predictions."
+        "**MLIPCalculator**  \nASE calculator wrapping an MLIP model for energy/force predictions."
     ),
     "calc": (
-        "**calc**  \n"
-        "ASE calculator attached to an Atoms object for DFT or MLIP computations."
+        "**calc**  \nASE calculator attached to an Atoms object for DFT or MLIP computations."
     ),
     "FIRE": "**FIRE**  \nASE optimizer using the FIRE algorithm.",
     "LBFGS": "**LBFGS**  \nASE optimizer using the Limited-memory BFGS algorithm.",
@@ -153,12 +150,12 @@ def _compute_diagnostics_for_uri(uri: str, content: str) -> list[Diagnostic]:
                     confidence=0.95,
                 )
             ]
-        diagnostics: list[Diagnostic] = []
+        yaml_diagnostics: list[Diagnostic] = []
         if isinstance(payload, dict):
             key_to_code = {"model": "MLIP-E082", "task": "MLIP-E083", "structure": "MLIP-E084"}
             for key, code in key_to_code.items():
                 if key not in payload:
-                    diagnostics.append(
+                    yaml_diagnostics.append(
                         Diagnostic(
                             code,
                             "error",
@@ -170,8 +167,8 @@ def _compute_diagnostics_for_uri(uri: str, content: str) -> list[Diagnostic]:
                         )
                     )
             # MLIP-E086: check path references
-            diagnostics.extend(_check_path_refs(payload, path, uri))
-        return diagnostics
+            yaml_diagnostics.extend(_check_path_refs(payload, path, uri))
+        return yaml_diagnostics
 
     if suffix in (".yaml", ".yml"):
         try:
@@ -277,17 +274,26 @@ def _looks_like_file_path(value: str) -> bool:
     if "/" in value or "\\" in value:
         return True
     known_extensions = {
-        ".txt", ".json", ".yaml", ".yml", ".py", ".pb", ".onnx",
-        ".pt", ".pth", ".bin", ".cif", ".xyz", ".poscar", ".contcar",
+        ".txt",
+        ".json",
+        ".yaml",
+        ".yml",
+        ".py",
+        ".pb",
+        ".onnx",
+        ".pt",
+        ".pth",
+        ".bin",
+        ".cif",
+        ".xyz",
+        ".poscar",
+        ".contcar",
     }
-    import os
     _, ext = os.path.splitext(value.lower())
     return ext in known_extensions
 
 
-def _check_path_refs(
-    payload: dict[str, Any], manifest_path: Path, uri: str
-) -> list[Diagnostic]:
+def _check_path_refs(payload: dict[str, Any], manifest_path: Path, uri: str) -> list[Diagnostic]:
     """Check cross-file path references for MLIP-E086."""
     diagnostics: list[Diagnostic] = []
     manifest_dir = manifest_path.parent
@@ -301,10 +307,10 @@ def _check_path_refs(
                 Diagnostic(
                     "MLIP-E086",
                     "warning",
-                    f"manifest references file \'{value}\' which does not exist",
+                    f"manifest references file '{value}' which does not exist",
                     _uri_to_path(uri),
                     1,
-                    evidence=[f"Key \'structure\' references \'{value}\'"],
+                    evidence=[f"Key 'structure' references '{value}'"],
                     suggested_fix={"kind": "create_missing_file", "path": value},
                     confidence=0.8,
                 )
@@ -319,10 +325,10 @@ def _check_path_refs(
                 Diagnostic(
                     "MLIP-E086",
                     "warning",
-                    f"manifest references file \'{model}\' which does not exist",
+                    f"manifest references file '{model}' which does not exist",
                     _uri_to_path(uri),
                     1,
-                    evidence=[f"Key \'model\' references \'{model}\'"],
+                    evidence=[f"Key 'model' references '{model}'"],
                     suggested_fix={"kind": "create_missing_file", "path": model},
                     confidence=0.7,
                 )
@@ -406,9 +412,9 @@ def _compute_completions(uri: str, content: str, line: int, character: int) -> l
         if ":" not in stripped or stripped.endswith(":"):
             word = stripped.rstrip(":").strip()
             if not word:
-                items: list[CompletionItem] = []
+                yaml_items: list[CompletionItem] = []
                 for key in REQUIRED_JSON_KEYS:
-                    items.append(
+                    yaml_items.append(
                         CompletionItem(
                             label=f"{key}:",
                             kind=CompletionItemKind.Property,
@@ -417,7 +423,7 @@ def _compute_completions(uri: str, content: str, line: int, character: int) -> l
                         )
                     )
                 for key in ("parameters", "output"):
-                    items.append(
+                    yaml_items.append(
                         CompletionItem(
                             label=f"{key}:",
                             kind=CompletionItemKind.Property,
@@ -425,7 +431,7 @@ def _compute_completions(uri: str, content: str, line: int, character: int) -> l
                             documentation=MANIFEST_KEY_DOCS.get(key, ""),
                         )
                     )
-                return items
+                return yaml_items
 
     if suffix == ".py":
         lines = content.splitlines()
@@ -560,9 +566,7 @@ def _compute_code_actions(
                                         TextEdit(
                                             range=Range(
                                                 start=Position(line=0, character=0),
-                                                end=Position(
-                                                    line=last_line, character=last_char
-                                                ),
+                                                end=Position(line=last_line, character=last_char),
                                             ),
                                             new_text=new_text,
                                         )
@@ -601,9 +605,7 @@ def _compute_code_actions(
                                         TextEdit(
                                             range=Range(
                                                 start=Position(line=0, character=0),
-                                                end=Position(
-                                                    line=last_line, character=last_char
-                                                ),
+                                                end=Position(line=last_line, character=last_char),
                                             ),
                                             new_text=new_text,
                                         )
@@ -636,9 +638,7 @@ def _compute_code_actions(
                                     TextEdit(
                                         range=Range(
                                             start=Position(line=0, character=0),
-                                            end=Position(
-                                                line=last_line, character=last_char
-                                            ),
+                                            end=Position(line=last_line, character=last_char),
                                         ),
                                         new_text=new_text,
                                     )
@@ -671,9 +671,7 @@ def _compute_code_actions(
                                     TextEdit(
                                         range=Range(
                                             start=Position(line=0, character=0),
-                                            end=Position(
-                                                line=last_line, character=last_char
-                                            ),
+                                            end=Position(line=last_line, character=last_char),
                                         ),
                                         new_text=new_text,
                                     )
@@ -803,9 +801,7 @@ class MLIPServer:
                     source="mlip-lsp",
                 )
             )
-        self.server.text_document_publish_diagnostics(
-            PublishDiagnosticsParams(uri=uri, diagnostics=lsp_diags)
-        )
+        self.server.publish_diagnostics(uri, lsp_diags)
 
     # ------------------------------------------------------------------
     # Public API (used by tests and externally)

@@ -23,7 +23,13 @@ class TestFormatJSON:
         assert parsed["model"] == "DPA3.1-3M"
 
     def test_preserves_already_formatted_json(self) -> None:
-        text = json.dumps({"model": "DPA3.1-3M", "structure": "input.cif", "task": "optimize"}, indent=2) + "\n"
+        text = (
+            json.dumps(
+                {"model": "DPA3.1-3M", "structure": "input.cif", "task": "optimize"},
+                indent=2,
+            )
+            + "\n"
+        )
         result = format_json(text)
         assert result == text
 

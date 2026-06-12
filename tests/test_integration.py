@@ -6,10 +6,10 @@ import json
 from pathlib import Path
 
 from mlip_lsp.agent_lsp import AgentLSP
-from mlip_lsp.analyzer import analyze_file, analyze_path
+from mlip_lsp.analyzer import analyze_path
 from mlip_lsp.diagnostics import Diagnostic
 from mlip_lsp.rich_diagnostics import agent_check_payload, diagnostic_to_dict
-from mlip_lsp.server import MLIPServer, create_server
+from mlip_lsp.server import create_server
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -94,11 +94,13 @@ class TestIssue8MatMaster:
     def test_valid_manifest_passes(self, tmp_path: Path) -> None:
         fixture = tmp_path / "manifest.json"
         fixture.write_text(
-            json.dumps({
-                "model": "DPA3.1-3M",
-                "structure": "input.cif",
-                "task": "optimize",
-            }),
+            json.dumps(
+                {
+                    "model": "DPA3.1-3M",
+                    "structure": "input.cif",
+                    "task": "optimize",
+                }
+            ),
             encoding="utf-8",
         )
         diags = analyze_path(tmp_path)
@@ -108,11 +110,13 @@ class TestIssue8MatMaster:
     def test_unknown_model_warns(self, tmp_path: Path) -> None:
         fixture = tmp_path / "manifest.json"
         fixture.write_text(
-            json.dumps({
-                "model": "UnknownModel",
-                "structure": "input.cif",
-                "task": "optimize",
-            }),
+            json.dumps(
+                {
+                    "model": "UnknownModel",
+                    "structure": "input.cif",
+                    "task": "optimize",
+                }
+            ),
             encoding="utf-8",
         )
         diags = analyze_path(tmp_path)
@@ -129,11 +133,13 @@ class TestIssue11AgentJSON:
     def test_agent_check_valid(self, tmp_path: Path) -> None:
         fixture = tmp_path / "manifest.json"
         fixture.write_text(
-            json.dumps({
-                "model": "DPA3.1-3M",
-                "structure": "input.cif",
-                "task": "optimize",
-            }),
+            json.dumps(
+                {
+                    "model": "DPA3.1-3M",
+                    "structure": "input.cif",
+                    "task": "optimize",
+                }
+            ),
             encoding="utf-8",
         )
         agent = AgentLSP.from_path(fixture)
@@ -281,9 +287,7 @@ class TestIssue15YAMLInvalid:
 
     def test_e081_via_server(self) -> None:
         server = create_server()
-        diags = server.compute_diagnostics(
-            "file:///tmp/b.yaml", "model: X\n  bad_indent: true\n"
-        )
+        diags = server.compute_diagnostics("file:///tmp/b.yaml", "model: X\n  bad_indent: true\n")
         e081 = [d for d in diags if d.code == "MLIP-E081"]
         assert e081
 
@@ -296,9 +300,7 @@ class TestIssue15YAMLInvalid:
 class TestIssue16MissingModel:
     def test_json_missing_model_e082(self, tmp_path: Path) -> None:
         fixture = tmp_path / "manifest.json"
-        fixture.write_text(
-            json.dumps({"structure": "s", "task": "t"}), encoding="utf-8"
-        )
+        fixture.write_text(json.dumps({"structure": "s", "task": "t"}), encoding="utf-8")
         diags = analyze_path(tmp_path)
         e082 = [d for d in diags if d.code == "MLIP-E082"]
         assert e082
@@ -328,9 +330,7 @@ class TestIssue16MissingModel:
 class TestIssue17MissingTask:
     def test_json_missing_task_e083(self, tmp_path: Path) -> None:
         fixture = tmp_path / "manifest.json"
-        fixture.write_text(
-            json.dumps({"model": "m", "structure": "s"}), encoding="utf-8"
-        )
+        fixture.write_text(json.dumps({"model": "m", "structure": "s"}), encoding="utf-8")
         diags = analyze_path(tmp_path)
         e083 = [d for d in diags if d.code == "MLIP-E083"]
         assert e083
@@ -351,9 +351,7 @@ class TestIssue17MissingTask:
 class TestIssue18MissingStructure:
     def test_json_missing_structure_e084(self, tmp_path: Path) -> None:
         fixture = tmp_path / "manifest.json"
-        fixture.write_text(
-            json.dumps({"model": "m", "task": "t"}), encoding="utf-8"
-        )
+        fixture.write_text(json.dumps({"model": "m", "task": "t"}), encoding="utf-8")
         diags = analyze_path(tmp_path)
         e084 = [d for d in diags if d.code == "MLIP-E084"]
         assert e084
@@ -382,9 +380,7 @@ class TestIssue19MissingASE:
 
     def test_ase_import_present_no_w080(self, tmp_path: Path) -> None:
         fixture = tmp_path / "script.py"
-        fixture.write_text(
-            "from ase import Atoms\nstructure = Atoms()\n", encoding="utf-8"
-        )
+        fixture.write_text("from ase import Atoms\nstructure = Atoms()\n", encoding="utf-8")
         diags = analyze_path(tmp_path)
         w080 = [d for d in diags if d.code == "MLIP-W080"]
         assert not w080
@@ -398,9 +394,7 @@ class TestIssue19MissingASE:
 class TestIssue20MissingStructureSymbol:
     def test_missing_structure_e085(self, tmp_path: Path) -> None:
         fixture = tmp_path / "script.py"
-        fixture.write_text(
-            "from ase import Atoms\natoms = Atoms('Cu')\n", encoding="utf-8"
-        )
+        fixture.write_text("from ase import Atoms\natoms = Atoms('Cu')\n", encoding="utf-8")
         diags = analyze_path(tmp_path)
         e085 = [d for d in diags if d.code == "MLIP-E085"]
         assert e085
@@ -408,9 +402,7 @@ class TestIssue20MissingStructureSymbol:
 
     def test_structure_present_no_e085(self, tmp_path: Path) -> None:
         fixture = tmp_path / "script.py"
-        fixture.write_text(
-            "from ase import Atoms\nstructure = Atoms()\n", encoding="utf-8"
-        )
+        fixture.write_text("from ase import Atoms\nstructure = Atoms()\n", encoding="utf-8")
         diags = analyze_path(tmp_path)
         e085 = [d for d in diags if d.code == "MLIP-E085"]
         assert not e085
@@ -425,11 +417,13 @@ class TestIssue21MissingPathRef:
     def test_missing_structure_file_e086(self, tmp_path: Path) -> None:
         fixture = tmp_path / "manifest.json"
         fixture.write_text(
-            json.dumps({
-                "model": "DPA3.1-3M",
-                "structure": "nonexistent.xyz",
-                "task": "optimize",
-            }),
+            json.dumps(
+                {
+                    "model": "DPA3.1-3M",
+                    "structure": "nonexistent.xyz",
+                    "task": "optimize",
+                }
+            ),
             encoding="utf-8",
         )
         diags = analyze_path(tmp_path)
@@ -440,11 +434,13 @@ class TestIssue21MissingPathRef:
         (tmp_path / "POSCAR").write_text("data", encoding="utf-8")
         fixture = tmp_path / "manifest.json"
         fixture.write_text(
-            json.dumps({
-                "model": "DPA3.1-3M",
-                "structure": "POSCAR",
-                "task": "optimize",
-            }),
+            json.dumps(
+                {
+                    "model": "DPA3.1-3M",
+                    "structure": "POSCAR",
+                    "task": "optimize",
+                }
+            ),
             encoding="utf-8",
         )
         diags = analyze_path(tmp_path)
@@ -553,9 +549,7 @@ class TestIssue23CodeActions:
                 break
         else:
             # At least some actions should have edits
-            actions_with_edits = [
-                a for a in actions if hasattr(a, "edit") and a.edit is not None
-            ]
+            actions_with_edits = [a for a in actions if hasattr(a, "edit") and a.edit is not None]
             assert actions_with_edits
 
 
@@ -569,9 +563,7 @@ class TestIssue24LogParser:
         from mlip_lsp.features.log_parser import log_diagnostics
 
         content = (
-            "Traceback (most recent call last):\n"
-            "  File 'run.py', line 5\n"
-            "RuntimeError: fail\n"
+            "Traceback (most recent call last):\n  File 'run.py', line 5\nRuntimeError: fail\n"
         )
         diags = log_diagnostics(content, "run.log")
         assert len(diags) == 1

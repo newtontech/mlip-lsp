@@ -345,10 +345,7 @@ class TestLogFiles:
     def test_log_without_traceback(self, tmp_path: Path) -> None:
         fixture = tmp_path / "mlip.log"
         fixture.write_text(
-            "Starting MLIP calculation...\n"
-            "Step 1: energy = -10.5\n"
-            "Step 2: energy = -10.6\n"
-            "Done.\n",
+            "Starting MLIP calculation...\nStep 1: energy = -10.5\nStep 2: energy = -10.6\nDone.\n",
             encoding="utf-8",
         )
         diagnostics = analyze_path(tmp_path)

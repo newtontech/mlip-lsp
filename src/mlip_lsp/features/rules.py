@@ -20,6 +20,7 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Rule:
     """A single diagnostic rule definition."""
+
     code: str
     name: str
     severity: str
