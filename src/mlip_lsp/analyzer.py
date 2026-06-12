@@ -34,10 +34,24 @@ COMMENT_PREFIXES = ("#", "!", ";")
 # Path reference helpers
 # ---------------------------------------------------------------------------
 
-_FILE_PATH_EXTENSIONS = frozenset({
-    ".txt", ".json", ".yaml", ".yml", ".py", ".pb", ".onnx",
-    ".pt", ".pth", ".bin", ".cif", ".xyz", ".poscar", ".contcar",
-})
+_FILE_PATH_EXTENSIONS = frozenset(
+    {
+        ".txt",
+        ".json",
+        ".yaml",
+        ".yml",
+        ".py",
+        ".pb",
+        ".onnx",
+        ".pt",
+        ".pth",
+        ".bin",
+        ".cif",
+        ".xyz",
+        ".poscar",
+        ".contcar",
+    }
+)
 
 
 def _looks_like_file_path(value: str) -> bool:
@@ -237,9 +251,7 @@ def _analyze_python(path: Path, content: str) -> list[Diagnostic]:
         tree = ast.parse(content)
     except SyntaxError as exc:
         return [
-            Diagnostic(
-                "MLIP-E080", "error", exc.msg, str(path), exc.lineno or 1, exc.offset or 1
-            )
+            Diagnostic("MLIP-E080", "error", exc.msg, str(path), exc.lineno or 1, exc.offset or 1)
         ]
     names = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
     attrs = {node.attr for node in ast.walk(tree) if isinstance(node, ast.Attribute)}

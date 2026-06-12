@@ -19,6 +19,7 @@ _ERROR_LINE_RE = re.compile(r"^(\w+Error|Exception): (.+)$", re.MULTILINE)
 @dataclass(frozen=True)
 class TracebackBlock:
     """A single traceback extracted from a log."""
+
     start_line: int
     error_type: str
     error_message: str
@@ -28,9 +29,9 @@ def parse_log(content: str) -> list[TracebackBlock]:
     """Extract all traceback blocks from log content."""
     blocks: list[TracebackBlock] = []
     for match in _TRACEBACK_RE.finditer(content):
-        start_line = content[:match.start()].count("\n") + 1
+        start_line = content[: match.start()].count("\n") + 1
         # Find the error line after the traceback header
-        rest = content[match.end():]
+        rest = content[match.end() :]
         error_type = "Error"
         error_message = "unknown error"
         err_match = _ERROR_LINE_RE.search(rest)
@@ -47,9 +48,7 @@ def parse_log(content: str) -> list[TracebackBlock]:
     return blocks
 
 
-def log_diagnostics(
-    content: str, file_path: str
-) -> list[Diagnostic]:
+def log_diagnostics(content: str, file_path: str) -> list[Diagnostic]:
     """Produce diagnostics for a runtime log file.
 
     Returns MLIP-E087 for each Python traceback found.

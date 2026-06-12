@@ -41,9 +41,7 @@ TASK_REQUIREMENTS: dict[str, list[str]] = {
 MANIFEST_EXTENSIONS = {".json", ".yaml", ".yml"}
 
 
-def validate_manifest_structure(
-    manifest: dict[str, Any], file_path: str
-) -> list[Diagnostic]:
+def validate_manifest_structure(manifest: dict[str, Any], file_path: str) -> list[Diagnostic]:
     """Validate a parsed manifest against MatMaster execution contracts."""
     diagnostics: list[Diagnostic] = []
 

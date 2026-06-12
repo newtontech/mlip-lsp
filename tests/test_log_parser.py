@@ -78,19 +78,13 @@ class TestLogDiagnostics:
         assert diags[0].confidence >= 0.9
 
     def test_e087_has_suggested_fix(self) -> None:
-        content = (
-            "Traceback (most recent call last):\n"
-            "ValueError: bad\n"
-        )
+        content = "Traceback (most recent call last):\nValueError: bad\n"
         diags = log_diagnostics(content, "run.log")
         assert diags[0].suggested_fix is not None
         assert diags[0].suggested_fix["kind"] == "investigate_traceback"
 
     def test_e087_has_evidence(self) -> None:
-        content = (
-            "Traceback (most recent call last):\n"
-            "TypeError: wrong type\n"
-        )
+        content = "Traceback (most recent call last):\nTypeError: wrong type\n"
         diags = log_diagnostics(content, "run.log")
         assert diags[0].evidence
         assert "TypeError" in diags[0].evidence[0]

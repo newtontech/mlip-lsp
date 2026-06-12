@@ -105,17 +105,14 @@ PYTHON_HOVER_DOCS: dict[str, str] = {
     "ase": "**ASE**  \nAtomic Simulation Environment for atomistic simulations.",
     "Atoms": "**Atoms**  \nASE object representing a collection of atoms.",
     "structure": (
-        "**structure**  \n"
-        "Expected ASE Atoms object for MLIP workflow with a .calc attribute."
+        "**structure**  \nExpected ASE Atoms object for MLIP workflow with a .calc attribute."
     ),
     "BFGS": "**BFGS**  \nASE optimizer using the BFGS algorithm.",
     "MLIPCalculator": (
-        "**MLIPCalculator**  \n"
-        "ASE calculator wrapping an MLIP model for energy/force predictions."
+        "**MLIPCalculator**  \nASE calculator wrapping an MLIP model for energy/force predictions."
     ),
     "calc": (
-        "**calc**  \n"
-        "ASE calculator attached to an Atoms object for DFT or MLIP computations."
+        "**calc**  \nASE calculator attached to an Atoms object for DFT or MLIP computations."
     ),
     "FIRE": "**FIRE**  \nASE optimizer using the FIRE algorithm.",
     "LBFGS": "**LBFGS**  \nASE optimizer using the Limited-memory BFGS algorithm.",
@@ -278,16 +275,26 @@ def _looks_like_file_path(value: str) -> bool:
     if "/" in value or "\\" in value:
         return True
     known_extensions = {
-        ".txt", ".json", ".yaml", ".yml", ".py", ".pb", ".onnx",
-        ".pt", ".pth", ".bin", ".cif", ".xyz", ".poscar", ".contcar",
+        ".txt",
+        ".json",
+        ".yaml",
+        ".yml",
+        ".py",
+        ".pb",
+        ".onnx",
+        ".pt",
+        ".pth",
+        ".bin",
+        ".cif",
+        ".xyz",
+        ".poscar",
+        ".contcar",
     }
     _, ext = os.path.splitext(value.lower())
     return ext in known_extensions
 
 
-def _check_path_refs(
-    payload: dict[str, Any], manifest_path: Path, uri: str
-) -> list[Diagnostic]:
+def _check_path_refs(payload: dict[str, Any], manifest_path: Path, uri: str) -> list[Diagnostic]:
     """Check cross-file path references for MLIP-E086."""
     diagnostics: list[Diagnostic] = []
     manifest_dir = manifest_path.parent
@@ -301,10 +308,10 @@ def _check_path_refs(
                 Diagnostic(
                     "MLIP-E086",
                     "warning",
-                    f"manifest references file \'{value}\' which does not exist",
+                    f"manifest references file '{value}' which does not exist",
                     _uri_to_path(uri),
                     1,
-                    evidence=[f"Key \'structure\' references \'{value}\'"],
+                    evidence=[f"Key 'structure' references '{value}'"],
                     suggested_fix={"kind": "create_missing_file", "path": value},
                     confidence=0.8,
                 )
@@ -319,10 +326,10 @@ def _check_path_refs(
                 Diagnostic(
                     "MLIP-E086",
                     "warning",
-                    f"manifest references file \'{model}\' which does not exist",
+                    f"manifest references file '{model}' which does not exist",
                     _uri_to_path(uri),
                     1,
-                    evidence=[f"Key \'model\' references \'{model}\'"],
+                    evidence=[f"Key 'model' references '{model}'"],
                     suggested_fix={"kind": "create_missing_file", "path": model},
                     confidence=0.7,
                 )
@@ -560,9 +567,7 @@ def _compute_code_actions(
                                         TextEdit(
                                             range=Range(
                                                 start=Position(line=0, character=0),
-                                                end=Position(
-                                                    line=last_line, character=last_char
-                                                ),
+                                                end=Position(line=last_line, character=last_char),
                                             ),
                                             new_text=new_text,
                                         )
@@ -601,9 +606,7 @@ def _compute_code_actions(
                                         TextEdit(
                                             range=Range(
                                                 start=Position(line=0, character=0),
-                                                end=Position(
-                                                    line=last_line, character=last_char
-                                                ),
+                                                end=Position(line=last_line, character=last_char),
                                             ),
                                             new_text=new_text,
                                         )
@@ -636,9 +639,7 @@ def _compute_code_actions(
                                     TextEdit(
                                         range=Range(
                                             start=Position(line=0, character=0),
-                                            end=Position(
-                                                line=last_line, character=last_char
-                                            ),
+                                            end=Position(line=last_line, character=last_char),
                                         ),
                                         new_text=new_text,
                                     )
@@ -671,9 +672,7 @@ def _compute_code_actions(
                                     TextEdit(
                                         range=Range(
                                             start=Position(line=0, character=0),
-                                            end=Position(
-                                                line=last_line, character=last_char
-                                            ),
+                                            end=Position(line=last_line, character=last_char),
                                         ),
                                         new_text=new_text,
                                     )
