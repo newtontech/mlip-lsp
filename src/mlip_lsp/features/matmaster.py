@@ -7,7 +7,6 @@ to the structure required for automated execution.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
 
 from ..diagnostics import Diagnostic
@@ -76,7 +75,10 @@ def validate_manifest_structure(
                 Diagnostic(
                     code="MLIP-E082",
                     severity="warning",
-                    message=f"unknown MLIP model '{model}'; known models: {', '.join(sorted(MODEL_FAMILIES))}",
+                    message=(
+                        f"unknown MLIP model '{model}'; known models: "
+                        f"{', '.join(sorted(MODEL_FAMILIES))}"
+                    ),
                     file=file_path,
                     line=1,
                     suggested_fix={"kind": "check_model_name", "model": model},
@@ -92,7 +94,10 @@ def validate_manifest_structure(
                 Diagnostic(
                     code="MLIP-E083",
                     severity="warning",
-                    message=f"unknown task type '{task}'; valid types: {', '.join(sorted(TASK_REQUIREMENTS))}",
+                    message=(
+                        f"unknown task type '{task}'; valid types: "
+                        f"{', '.join(sorted(TASK_REQUIREMENTS))}"
+                    ),
                     file=file_path,
                     line=1,
                     suggested_fix={"kind": "check_task_type", "task": task},

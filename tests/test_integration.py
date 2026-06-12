@@ -6,10 +6,10 @@ import json
 from pathlib import Path
 
 from mlip_lsp.agent_lsp import AgentLSP
-from mlip_lsp.analyzer import analyze_file, analyze_path
+from mlip_lsp.analyzer import analyze_path
 from mlip_lsp.diagnostics import Diagnostic
 from mlip_lsp.rich_diagnostics import agent_check_payload, diagnostic_to_dict
-from mlip_lsp.server import MLIPServer, create_server
+from mlip_lsp.server import create_server
 
 FIXTURES = Path(__file__).parent / "fixtures"
 

@@ -33,20 +33,18 @@ from lsprotocol.types import (
     HoverParams,
     MarkupContent,
     MarkupKind,
+    OptionalVersionedTextDocumentIdentifier,
     Position,
     PublishDiagnosticsParams,
     Range,
+    TextDocumentEdit,
     TextEdit,
+    WorkspaceEdit,
 )
 from lsprotocol.types import (
     Diagnostic as LspDiagnostic,
 )
-from lsprotocol.types import (
-    OptionalVersionedTextDocumentIdentifier,
-    TextDocumentEdit,
-    WorkspaceEdit,
-)
-from pygls.lsp.server import LanguageServer
+from pygls.server import LanguageServer
 
 from .analyzer import REQUIRED_JSON_KEYS, format_text
 from .diagnostics import Diagnostic
@@ -106,7 +104,10 @@ PYTHON_COMPLETION_SNIPPETS = {
 PYTHON_HOVER_DOCS: dict[str, str] = {
     "ase": "**ASE**  \nAtomic Simulation Environment for atomistic simulations.",
     "Atoms": "**Atoms**  \nASE object representing a collection of atoms.",
-    "structure": "**structure**  \nExpected ASE Atoms object for MLIP workflow with a .calc attribute.",
+    "structure": (
+        "**structure**  \n"
+        "Expected ASE Atoms object for MLIP workflow with a .calc attribute."
+    ),
     "BFGS": "**BFGS**  \nASE optimizer using the BFGS algorithm.",
     "MLIPCalculator": (
         "**MLIPCalculator**  \n"
@@ -280,7 +281,6 @@ def _looks_like_file_path(value: str) -> bool:
         ".txt", ".json", ".yaml", ".yml", ".py", ".pb", ".onnx",
         ".pt", ".pth", ".bin", ".cif", ".xyz", ".poscar", ".contcar",
     }
-    import os
     _, ext = os.path.splitext(value.lower())
     return ext in known_extensions
 

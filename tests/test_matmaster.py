@@ -17,12 +17,12 @@ class TestModelFamilies:
         assert set(MODEL_FAMILIES.keys()) == expected
 
     def test_each_model_has_engine(self) -> None:
-        for model, info in MODEL_FAMILIES.items():
+        for _model, info in MODEL_FAMILIES.items():
             assert "engine" in info
             assert info["engine"]
 
     def test_each_model_has_requires_model_file(self) -> None:
-        for model, info in MODEL_FAMILIES.items():
+        for _model, info in MODEL_FAMILIES.items():
             assert "requires_model_file" in info
 
 

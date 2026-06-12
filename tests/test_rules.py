@@ -57,7 +57,15 @@ class TestRuleDefinitions:
         assert msg == "fallback"
 
     def test_error_codes_have_error_severity(self) -> None:
-        error_codes = {"MLIP-E080", "MLIP-E081", "MLIP-E082", "MLIP-E083", "MLIP-E084", "MLIP-E085", "MLIP-E087"}
+        error_codes = {
+            "MLIP-E080",
+            "MLIP-E081",
+            "MLIP-E082",
+            "MLIP-E083",
+            "MLIP-E084",
+            "MLIP-E085",
+            "MLIP-E087",
+        }
         for code in error_codes:
             assert RULES[code].severity == "error", f"{code} should be error"
 

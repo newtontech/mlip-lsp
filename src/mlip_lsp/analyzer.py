@@ -3,17 +3,15 @@ from __future__ import annotations
 import ast
 import json
 import os
-import re
 from pathlib import Path
 from typing import Any
 
 import yaml
 
 from .diagnostics import Diagnostic
-from .features.formatter import format_text, safe_format
+from .features.formatter import format_text as format_text
 from .features.log_parser import log_diagnostics
 from .features.matmaster import (
-    MANIFEST_EXTENSIONS,
     validate_manifest_structure,
 )
 
