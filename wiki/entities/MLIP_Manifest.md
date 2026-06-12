@@ -64,5 +64,7 @@ MLIP清单文件是描述MLIP计算任务的JSON或YAML格式配置文件，包�
 ## 相关文件 / Related Files
 
 - `raw/assets/valid_manifest.json` - 有效清单示例
+- `raw/assets/examples/manifest_md.json` - 带 MD 参数的清单示例
+- `wiki/synthesis/openqc-agent-context.md` - OpenQC agent LSP 映射
 - `wiki/entities/MLIP_Models.md` - 支持的模型列表
 - `wiki/entities/MLIP_Task_Types.md` - 任务类型详解

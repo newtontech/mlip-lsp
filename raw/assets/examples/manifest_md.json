@@ -1,0 +1,11 @@
+{
+  "model": "DPA3.1-3M",
+  "structure": "input.cif",
+  "task": "md",
+  "parameters": {
+    "temperature": 300,
+    "steps": 10000,
+    "timestep": 0.001
+  },
+  "output": "trajectory.xyz"
+}

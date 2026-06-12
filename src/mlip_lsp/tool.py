@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from .agent_operations import operation_path, with_capabilities
 from .rich_diagnostics import agent_check_payload
@@ -17,7 +17,10 @@ def _capabilities_payload() -> dict[str, Any]:
     for parent in Path(__file__).resolve().parents:
         manifest_path = parent / "lsp-capabilities.json"
         if manifest_path.exists():
-            return json.loads(manifest_path.read_text(encoding="utf-8"))
+            return cast(
+                dict[str, Any],
+                json.loads(manifest_path.read_text(encoding="utf-8")),
+            )
     return {
         "schema": "OpenQCLspCapabilities",
         "version": 1,
@@ -33,7 +36,15 @@ def _capabilities_payload() -> dict[str, Any]:
             "openqc-context",
         ],
         "agentCli": {
-            "operations": ["capabilities", "check", "context", "complete", "hover", "symbols", "fix"],
+            "operations": [
+                "capabilities",
+                "check",
+                "context",
+                "complete",
+                "hover",
+                "symbols",
+                "fix",
+            ],
             "jsonFormat": True,
             "failOnBlocking": True,
         },

@@ -1,5 +1,30 @@
 # 变更日志 / Change Log
 
+## 2026-06-13
+
+### Issue #29 closeout / 问题#29收尾
+
+**Created by**: dmux Worker D (Cursor Agent)
+**Purpose**: Complete upstream doc gaps, cross-references, wiki lint, and LSP capability grounding
+
+#### 原始证据 / Raw evidence
+- `upstream-sources.md` — Official MLIP ecosystem source manifest
+- `examples/manifest_md.json` — MD task manifest with temperature/steps parameters
+
+#### LSP / Agent updates
+- `lsp-capabilities.json` — Added `llmWiki` block with operation hints and example inputs
+- `wiki/synthesis/openqc-agent-context.md` — Wiki/raw grounding table for agent operations
+- `scripts/check-llm-wiki.sh` — Lightweight index and capability path validation
+
+#### CI repair
+- `src/mlip_lsp/tool.py` — Fix ruff E501 line length in fallback capabilities JSON
+
+#### 导航 / Navigation
+- `index.md` — upstream manifest, openqc-agent-context, diagnostic-engine-v1 links
+- `wiki/entities/MLIP_Manifest.md` — Cross-link to MD manifest example
+
+---
+
 ## 2025-06-12
 
 ### 新增 / Added
