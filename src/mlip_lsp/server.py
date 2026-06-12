@@ -150,12 +150,12 @@ def _compute_diagnostics_for_uri(uri: str, content: str) -> list[Diagnostic]:
                     confidence=0.95,
                 )
             ]
-        diagnostics: list[Diagnostic] = []
+        json_diagnostics: list[Diagnostic] = []
         if isinstance(payload, dict):
             key_to_code = {"model": "MLIP-E082", "task": "MLIP-E083", "structure": "MLIP-E084"}
             for key, code in key_to_code.items():
                 if key not in payload:
-                    diagnostics.append(
+                    json_diagnostics.append(
                         Diagnostic(
                             code,
                             "error",
@@ -167,8 +167,8 @@ def _compute_diagnostics_for_uri(uri: str, content: str) -> list[Diagnostic]:
                         )
                     )
             # MLIP-E086: check path references
-            diagnostics.extend(_check_path_refs(payload, path, uri))
-        return diagnostics
+            json_diagnostics.extend(_check_path_refs(payload, path, uri))
+        return json_diagnostics
 
     if suffix in (".yaml", ".yml"):
         try:
