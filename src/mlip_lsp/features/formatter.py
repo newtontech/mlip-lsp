@@ -39,13 +39,15 @@ def _safe_yaml_load(text: str) -> Any | None:
 def _safe_yaml_dumps(obj: Any) -> str:
     """Serialize to YAML with a trailing newline."""
     try:
-        import yaml  # type: ignore[import-untyped]
+        import yaml
 
-        return yaml.dump(
-            obj,
-            default_flow_style=False,
-            sort_keys=True,
-            allow_unicode=True,
+        return str(
+            yaml.dump(
+                obj,
+                default_flow_style=False,
+                sort_keys=True,
+                allow_unicode=True,
+            )
         )
     except Exception:
         return ""

@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 from lsprotocol.types import (
     TEXT_DOCUMENT_CODE_ACTION,
     TEXT_DOCUMENT_COMPLETION,
@@ -35,7 +35,6 @@ from lsprotocol.types import (
     MarkupKind,
     OptionalVersionedTextDocumentIdentifier,
     Position,
-    PublishDiagnosticsParams,
     Range,
     TextDocumentEdit,
     TextEdit,
@@ -151,12 +150,12 @@ def _compute_diagnostics_for_uri(uri: str, content: str) -> list[Diagnostic]:
                     confidence=0.95,
                 )
             ]
-        diagnostics: list[Diagnostic] = []
+        yaml_diagnostics: list[Diagnostic] = []
         if isinstance(payload, dict):
             key_to_code = {"model": "MLIP-E082", "task": "MLIP-E083", "structure": "MLIP-E084"}
             for key, code in key_to_code.items():
                 if key not in payload:
-                    diagnostics.append(
+                    yaml_diagnostics.append(
                         Diagnostic(
                             code,
                             "error",
@@ -168,8 +167,8 @@ def _compute_diagnostics_for_uri(uri: str, content: str) -> list[Diagnostic]:
                         )
                     )
             # MLIP-E086: check path references
-            diagnostics.extend(_check_path_refs(payload, path, uri))
-        return diagnostics
+            yaml_diagnostics.extend(_check_path_refs(payload, path, uri))
+        return yaml_diagnostics
 
     if suffix in (".yaml", ".yml"):
         try:
@@ -413,9 +412,9 @@ def _compute_completions(uri: str, content: str, line: int, character: int) -> l
         if ":" not in stripped or stripped.endswith(":"):
             word = stripped.rstrip(":").strip()
             if not word:
-                items: list[CompletionItem] = []
+                yaml_items: list[CompletionItem] = []
                 for key in REQUIRED_JSON_KEYS:
-                    items.append(
+                    yaml_items.append(
                         CompletionItem(
                             label=f"{key}:",
                             kind=CompletionItemKind.Property,
@@ -424,7 +423,7 @@ def _compute_completions(uri: str, content: str, line: int, character: int) -> l
                         )
                     )
                 for key in ("parameters", "output"):
-                    items.append(
+                    yaml_items.append(
                         CompletionItem(
                             label=f"{key}:",
                             kind=CompletionItemKind.Property,
@@ -432,7 +431,7 @@ def _compute_completions(uri: str, content: str, line: int, character: int) -> l
                             documentation=MANIFEST_KEY_DOCS.get(key, ""),
                         )
                     )
-                return items
+                return yaml_items
 
     if suffix == ".py":
         lines = content.splitlines()
@@ -802,9 +801,7 @@ class MLIPServer:
                     source="mlip-lsp",
                 )
             )
-        self.server.text_document_publish_diagnostics(
-            PublishDiagnosticsParams(uri=uri, diagnostics=lsp_diags)
-        )
+        self.server.publish_diagnostics(uri, lsp_diags)
 
     # ------------------------------------------------------------------
     # Public API (used by tests and externally)
