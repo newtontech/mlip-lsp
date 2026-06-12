@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-import yaml  # type: ignore[import-untyped]
+import yaml
 from lsprotocol.types import (
     TEXT_DOCUMENT_CODE_ACTION,
     TEXT_DOCUMENT_COMPLETION,
@@ -150,12 +150,12 @@ def _compute_diagnostics_for_uri(uri: str, content: str) -> list[Diagnostic]:
                     confidence=0.95,
                 )
             ]
-        yaml_diagnostics: list[Diagnostic] = []
+        json_diagnostics: list[Diagnostic] = []
         if isinstance(payload, dict):
             key_to_code = {"model": "MLIP-E082", "task": "MLIP-E083", "structure": "MLIP-E084"}
             for key, code in key_to_code.items():
                 if key not in payload:
-                    yaml_diagnostics.append(
+                    json_diagnostics.append(
                         Diagnostic(
                             code,
                             "error",
@@ -167,8 +167,8 @@ def _compute_diagnostics_for_uri(uri: str, content: str) -> list[Diagnostic]:
                         )
                     )
             # MLIP-E086: check path references
-            yaml_diagnostics.extend(_check_path_refs(payload, path, uri))
-        return yaml_diagnostics
+            json_diagnostics.extend(_check_path_refs(payload, path, uri))
+        return json_diagnostics
 
     if suffix in (".yaml", ".yml"):
         try:
@@ -189,12 +189,12 @@ def _compute_diagnostics_for_uri(uri: str, content: str) -> list[Diagnostic]:
                     confidence=0.95,
                 )
             ]
-        diagnostics: list[Diagnostic] = []
+        yaml_diagnostics: list[Diagnostic] = []
         if isinstance(payload, dict):
             key_to_code = {"model": "MLIP-E082", "task": "MLIP-E083", "structure": "MLIP-E084"}
             for key, code in key_to_code.items():
                 if key not in payload:
-                    diagnostics.append(
+                    yaml_diagnostics.append(
                         Diagnostic(
                             code,
                             "error",
@@ -205,8 +205,8 @@ def _compute_diagnostics_for_uri(uri: str, content: str) -> list[Diagnostic]:
                             confidence=0.9,
                         )
                     )
-            diagnostics.extend(_check_path_refs(payload, path, uri))
-        return diagnostics
+            yaml_diagnostics.extend(_check_path_refs(payload, path, uri))
+        return yaml_diagnostics
 
     if suffix == ".py":
         try:

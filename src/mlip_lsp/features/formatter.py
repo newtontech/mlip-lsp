@@ -12,6 +12,8 @@ import json
 import re
 from typing import Any
 
+import yaml
+
 
 def _safe_json_loads(text: str) -> Any | None:
     """Try to parse JSON; return None on failure."""
@@ -29,8 +31,6 @@ def _safe_json_dumps(obj: Any) -> str:
 def _safe_yaml_load(text: str) -> Any | None:
     """Try to parse YAML; return None on failure."""
     try:
-        import yaml  # type: ignore[import-untyped]
-
         return yaml.safe_load(text)
     except Exception:
         return None
@@ -39,8 +39,6 @@ def _safe_yaml_load(text: str) -> Any | None:
 def _safe_yaml_dumps(obj: Any) -> str:
     """Serialize to YAML with a trailing newline."""
     try:
-        import yaml
-
         return str(
             yaml.dump(
                 obj,

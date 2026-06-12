@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-import yaml  # type: ignore[import-untyped]
+import yaml
 
 from .diagnostics import Diagnostic
 from .features.formatter import format_text as format_text
