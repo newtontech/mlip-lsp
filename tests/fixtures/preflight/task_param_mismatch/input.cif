@@ -1,0 +1,6 @@
+data_Si
+_cell_length_a 5.43
+loop_
+_atom_site_label
+_atom_site_fract_x
+Si 0.0

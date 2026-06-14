@@ -1,0 +1,5 @@
+{
+  "model": "NEP",
+  "structure": "input.cif",
+  "task": "optimize"
+}

@@ -1,0 +1,6 @@
+{
+  "model": "DPA3.1-3M",
+  "structure": "input.cif",
+  "task": "static",
+  "training": "training_missing.json"
+}
