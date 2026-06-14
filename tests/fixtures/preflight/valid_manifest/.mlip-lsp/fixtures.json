@@ -1,0 +1,40 @@
+{
+  "fixtures": [
+    {
+      "name": "valid_manifest",
+      "path": "tests/fixtures/preflight/valid_manifest",
+      "expect_ok": true,
+      "expect_codes": []
+    },
+    {
+      "name": "missing_model_potential",
+      "path": "tests/fixtures/preflight/missing_model_potential",
+      "expect_ok": false,
+      "expect_codes": ["MLIP601"]
+    },
+    {
+      "name": "task_param_mismatch",
+      "path": "tests/fixtures/preflight/task_param_mismatch",
+      "expect_ok": false,
+      "expect_codes": ["MLIP603"]
+    },
+    {
+      "name": "suspicious_md_params",
+      "path": "tests/fixtures/preflight/suspicious_md_params",
+      "expect_ok": true,
+      "expect_codes": ["MLIP607"]
+    },
+    {
+      "name": "model_engine_incompatible",
+      "path": "tests/fixtures/preflight/model_engine_incompatible",
+      "expect_ok": false,
+      "expect_codes": ["MLIP609"]
+    },
+    {
+      "name": "unresolved_training_config",
+      "path": "tests/fixtures/preflight/unresolved_training_config",
+      "expect_ok": true,
+      "expect_codes": ["MLIP604"]
+    }
+  ]
+}

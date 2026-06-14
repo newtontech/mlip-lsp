@@ -1,0 +1,9 @@
+{
+  "model": "DPA3.1-3M",
+  "structure": "input.cif",
+  "task": "md",
+  "parameters": {
+    "temperature": -10,
+    "steps": 5
+  }
+}

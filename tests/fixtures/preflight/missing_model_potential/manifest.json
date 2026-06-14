@@ -1,0 +1,5 @@
+{
+  "model": "weights_missing.pb",
+  "structure": "input.cif",
+  "task": "static"
+}

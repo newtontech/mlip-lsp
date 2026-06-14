@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from .agent_operations import operation_path, with_capabilities
+from .preflight import CODE_MISSING_ARTIFACT, CODE_MISSING_REQUIRED_KEY
 from .rich_diagnostics import agent_check_payload
 
 SOFTWARE = "mlip"
@@ -66,9 +67,100 @@ def _collect_diagnostics(path: Path) -> list[Any]:
     return list(analyze_path(path))
 
 
+def _load_intent(path: Path) -> dict[str, Any] | None:
+    """Load the optional preflight intent contract for a case directory.
+
+    The intent contract is the only place preflight policy overrides live
+    (e.g. ``software_version``, ``smoke_test``). It is a workspace-local
+    artifact, never a MatMaster/Bohrium runtime concept.
+    """
+    case_dir = path if path.is_dir() else path.parent
+    intent_path = case_dir / ".mlip-lsp" / "intent.json"
+    if not intent_path.exists():
+        return None
+    try:
+        data = json.loads(intent_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _looks_like_workspace(path: Path) -> bool:
+    """True when a path resolves to a real generated-input workspace.
+
+    Preflight needs at least one manifest to build a meaningful cross-artifact
+    graph; a path with no manifest falls back to the legacy single-file lint
+    path so callers that progressively build manifests are not flooded with
+    blocking preflight errors before the workspace is complete.
+    """
+    if not path.is_dir():
+        return False
+    from .preflight import find_manifest
+
+    return find_manifest(path) is not None
+
+
+def _collect_preflight(
+    path: Path, intent: dict[str, Any] | None
+) -> tuple[list[Any], list[dict[str, Any]], dict[str, Any]]:
+    """Return (preflight_diagnostics, artifact_graph, version_assumption).
+
+    Imported lazily so callers that never touch preflight (e.g. single-file
+    LSP hover) pay no import cost.
+    """
+    from .preflight import preflight_diagnostics, resolve_version_assumption
+
+    case_dir = path if path.is_dir() else path.parent
+    diagnostics, graph = preflight_diagnostics(case_dir, intent=intent)
+    version_assumption = resolve_version_assumption(intent)
+    return diagnostics, graph.to_json(), version_assumption
+
+
+# Codes already emitted by the legacy analyzer that overlap with the universal
+# preflight surface. We keep the legacy emission (it carries the existing test
+# contract) and drop the duplicate preflight variant to avoid noisy double
+# reports. The preflight shape is still proven by every other fixture.
+_OVERLAP_CODES_BY_LEGACY = {
+    "MLIP-E082": {CODE_MISSING_REQUIRED_KEY},  # legacy missing model key
+    "MLIP-E083": {CODE_MISSING_REQUIRED_KEY},  # legacy missing task key
+    "MLIP-E084": {CODE_MISSING_REQUIRED_KEY},  # legacy missing structure key
+    "MLIP-E086": {CODE_MISSING_ARTIFACT},  # legacy missing file reference
+}
+
+
+def _dedupe_preflight(legacy: list[Any], preflight: list[Any]) -> list[Any]:
+    """Drop preflight diagnostics whose finding the legacy analyzer already emitted."""
+    emitted_legacy: set[str] = set()
+    for item in legacy:
+        code = getattr(item, "code", None)
+        if code is None and isinstance(item, dict):
+            code = item.get("code")
+        if isinstance(code, str):
+            emitted_legacy.add(code)
+    suppressed_preflight: set[str] = set()
+    for legacy_code, preflight_codes in _OVERLAP_CODES_BY_LEGACY.items():
+        if legacy_code in emitted_legacy:
+            suppressed_preflight |= preflight_codes
+    return [
+        item
+        for item in preflight
+        if (item.get("code") if isinstance(item, dict) else None) not in suppressed_preflight
+    ]
+
+
 def check_path(path: Path) -> dict[str, Any]:
     uri = path.resolve().as_uri()
+    intent = _load_intent(path)
     diagnostics = _collect_diagnostics(path)
+    # Universal preflight diagnostics augment the legacy analyzer output, but
+    # only for a real generated-input workspace (a directory with a manifest).
+    # A bare single file path keeps the legacy single-file behavior so existing
+    # consumers that lint one manifest at a time are unaffected.
+    artifacts: list[dict[str, Any]] = []
+    version_assumption: dict[str, Any] | None = None
+    if path.is_dir() and _looks_like_workspace(path):
+        preflight, artifacts, version_assumption = _collect_preflight(path, intent)
+        diagnostics.extend(_dedupe_preflight(diagnostics, preflight))
     return agent_check_payload(
         software=SOFTWARE,
         uri=uri,
@@ -76,7 +168,57 @@ def check_path(path: Path) -> dict[str, Any]:
         diagnostics=diagnostics,
         path=str(path),
         file_type=_file_type(path),
+        intent=intent,
+        version_assumption=version_assumption,
+        artifacts=artifacts,
     )
+
+
+def preflight_path(path: Path) -> dict[str, Any]:
+    """Return a preflight-only payload (universal checks, no legacy analyzer)."""
+    from .preflight import preflight_diagnostics, resolve_version_assumption
+
+    intent = _load_intent(path)
+    case_dir = path if path.is_dir() else path.parent
+    diagnostics, graph = preflight_diagnostics(case_dir, intent=intent)
+    version_assumption = resolve_version_assumption(intent)
+    payload = agent_check_payload(
+        software=SOFTWARE,
+        uri=case_dir.resolve().as_uri(),
+        operation="preflight",
+        diagnostics=diagnostics,
+        path=str(case_dir),
+        file_type="case-dir",
+        intent=intent,
+        version_assumption=version_assumption,
+        artifacts=graph.to_json(),
+    )
+    return with_capabilities(payload, "preflight")
+
+
+def manifest_path(path: Path | None = None) -> dict[str, Any]:
+    """Return the fleet preflight manifest.
+
+    When ``path`` is given, fixture expectations declared in
+    ``.mlip-lsp/fixtures.json`` are merged in so the parent probe can confirm
+    a case directory exercises the documented codes.
+    """
+    from .preflight import fleet_manifest
+
+    fixtures: list[dict[str, Any]] = []
+    if path is not None:
+        case_dir = path if path.is_dir() else path.parent
+        fixtures_path = case_dir / ".mlip-lsp" / "fixtures.json"
+        if fixtures_path.exists():
+            try:
+                data = json.loads(fixtures_path.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                data = None
+            if isinstance(data, list):
+                fixtures = [item for item in data if isinstance(item, dict)]
+            elif isinstance(data, dict) and isinstance(data.get("fixtures"), list):
+                fixtures = [item for item in data["fixtures"] if isinstance(item, dict)]
+    return fleet_manifest(fixtures=fixtures)
 
 
 def _operation_payload(
@@ -101,9 +243,26 @@ def main(argv: list[str] | None = None) -> int:
     subparsers = parser.add_subparsers(dest="operation", required=True)
     capabilities = subparsers.add_parser("capabilities")
     capabilities.add_argument("--format", choices=["json"], default="json")
-    for operation in ("check", "context", "complete", "hover", "symbols", "fix"):
+    for operation in (
+        "check",
+        "preflight",
+        "manifest",
+        "context",
+        "complete",
+        "hover",
+        "symbols",
+        "fix",
+    ):
         sub = subparsers.add_parser(operation)
-        sub.add_argument("path", type=Path)
+        if operation == "manifest":
+            sub.add_argument(
+                "path",
+                type=Path,
+                nargs="?",
+                help="Optional case directory to merge fixture expectations from.",
+            )
+        else:
+            sub.add_argument("path", type=Path)
         sub.add_argument("--format", choices=["json"], default="json")
         sub.add_argument(
             "--line",
@@ -117,7 +276,7 @@ def main(argv: list[str] | None = None) -> int:
             default=0,
             help="0-based character for position-aware operations.",
         )
-        if operation == "check":
+        if operation in ("check", "preflight"):
             sub.add_argument("--fail-on-blocking", action="store_true")
     args = parser.parse_args(argv)
 
@@ -128,6 +287,14 @@ def main(argv: list[str] | None = None) -> int:
         payload = with_capabilities(check_path(args.path), "check")
         print(json.dumps(payload, indent=2, sort_keys=True))
         return 1 if getattr(args, "fail_on_blocking", False) and not payload["ok"] else 0
+    if args.operation == "preflight":
+        payload = preflight_path(args.path)
+        print(json.dumps(payload, indent=2, sort_keys=True))
+        return 1 if getattr(args, "fail_on_blocking", False) and not payload["ok"] else 0
+    if args.operation == "manifest":
+        payload = manifest_path(getattr(args, "path", None))
+        print(json.dumps(payload, indent=2, sort_keys=True))
+        return 0
     payload = _operation_payload(args.path, args.operation, args.line, args.character)
     print(json.dumps(payload, indent=2, sort_keys=True))
     return 0

@@ -1,0 +1,6 @@
+{
+  "software_version": "mlip-sdk >=2024",
+  "runtime_image": "registry.example.com/mlip:2024.1",
+  "schema_source": "mlip-lsp builtin",
+  "smoke_test": false
+}

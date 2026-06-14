@@ -92,7 +92,13 @@ def _collect_files(path: Path) -> list[Path]:
         return [path] if _is_supported(path) else []
     result: list[Path] = []
     for pattern in FILE_PATTERNS:
-        result.extend(path.rglob(pattern))
+        for candidate in path.rglob(pattern):
+            # Skip dotfile directories (.mlip-lsp, .git, .venv, ...). These hold
+            # tool/runtime config rather than workflow manifests, and linting them
+            # as manifests would flood the workspace check with false errors.
+            if any(part.startswith(".") for part in candidate.relative_to(path).parts[:-1]):
+                continue
+            result.append(candidate)
     return sorted({item for item in result if item.is_file()})
 
 
