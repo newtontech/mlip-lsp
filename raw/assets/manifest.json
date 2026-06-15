@@ -50,7 +50,9 @@
       "checksum_sha256": "54cc5e76f9f9333644a2cb2edbb9e49ca2fff017d59b68def27463e506ada5ed",
       "stable_id": "mlip-readme-digest-v1",
       "role": "overview",
-      "wiki_links": ["wiki/entities/MLIP_Models.md"]
+      "wiki_links": [
+        "wiki/entities/MLIP_Models.md"
+      ]
     },
     {
       "path": "mlip-input-format.md",
@@ -62,7 +64,9 @@
       "checksum_sha256": "f675ce90cb521fce2654847bd37127e3deafe30e710ac4cc4cd11efa7a6b6e2d",
       "stable_id": "mlip-input-format-v1",
       "role": "file_format_spec",
-      "wiki_links": ["wiki/synthesis/Input_Format_Reference.md"]
+      "wiki_links": [
+        "wiki/synthesis/Input_Format_Reference.md"
+      ]
     },
     {
       "path": "mlip-examples.md",
@@ -74,7 +78,9 @@
       "checksum_sha256": "bf956e9c60aaacb5ef68d074e5cb0f2ccf6d1d6891414fa4a455ca20e74ffc2c",
       "stable_id": "mlip-examples-v1",
       "role": "examples",
-      "wiki_links": ["wiki/synthesis/Typical_Workflows.md"]
+      "wiki_links": [
+        "wiki/synthesis/Typical_Workflows.md"
+      ]
     },
     {
       "path": "mlip-cli-reference.md",
@@ -86,7 +92,9 @@
       "checksum_sha256": "77d455fe3cf18675fbc6c52f1ade0abf4e9086a7a51ae8807d1fef5afb6ee1c9",
       "stable_id": "mlip-cli-reference-v1",
       "role": "cli_reference",
-      "wiki_links": ["wiki/concepts/CLI_Toolchain.md"]
+      "wiki_links": [
+        "wiki/concepts/CLI_Toolchain.md"
+      ]
     },
     {
       "path": "mtp-documentation.md",
@@ -98,7 +106,9 @@
       "checksum_sha256": "ba1133a43321fe4fe89acf0b5f827cee3df5ec4031f8e8617a2c91d43214aed8",
       "stable_id": "mlip-mtp-documentation-v1",
       "role": "model_reference",
-      "wiki_links": ["wiki/entities/MTP_Documentation.md"]
+      "wiki_links": [
+        "wiki/entities/MTP_Documentation.md"
+      ]
     },
     {
       "path": "nep_config.txt",
@@ -110,31 +120,88 @@
       "checksum_sha256": "dc7360a9566aed8b2d8591319837943002d885506a78f2ba2c9ab51fb565a03f",
       "stable_id": "mlip-nep-config-v1",
       "role": "example_input",
-      "wiki_links": ["wiki/entities/NEP_Configuration.md"]
+      "wiki_links": [
+        "wiki/entities/NEP_Configuration.md"
+      ]
     },
     {
       "path": "valid_manifest.json",
       "source_type": "repo_examples",
-      "source_url": null,
+      "source_url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/valid_manifest.json",
       "retrieval_date": "2026-06-12",
       "software_version": "mlip-lsp 0.2.0",
       "license": "MIT",
       "checksum_sha256": "d2b5677ed4ea07f61868f5f1e2c6558a76ad7efde7fd8af41bb1cf4cee176de0",
       "stable_id": "mlip-valid-manifest-v1",
       "role": "example_input",
-      "wiki_links": ["wiki/entities/MLIP_Manifest.md"]
+      "wiki_links": [
+        "wiki/entities/MLIP_Manifest.md"
+      ]
     },
     {
       "path": "valid_ase_script.py",
       "source_type": "repo_examples",
-      "source_url": null,
+      "source_url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/valid_ase_script.py",
       "retrieval_date": "2026-06-12",
       "software_version": "mlip-lsp 0.2.0",
       "license": "MIT",
       "checksum_sha256": "10246d16e5bd46ca08d6a8bdb11bd981d5e64839d7d1f4e41940e114f727d70a",
       "stable_id": "mlip-valid-ase-script-v1",
       "role": "example_input",
-      "wiki_links": ["wiki/entities/ASE_Atomistic_Simulation.md"]
+      "wiki_links": [
+        "wiki/entities/ASE_Atomistic_Simulation.md"
+      ]
+    },
+    {
+      "path": "analyzer.py",
+      "source_type": "repo_rules",
+      "source_url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/analyzer.py",
+      "retrieval_date": "2026-06-12",
+      "software_version": "mlip-lsp 0.2.0",
+      "license": "MIT",
+      "checksum_sha256": "6638847e72bd5150fd79c9e26391a3338678d1b13a39fa8758d898774e7219f3",
+      "stable_id": "mlip-analyzer-snapshot-v1",
+      "role": "code_snapshot",
+      "wiki_links": [
+        "wiki/synthesis/API_Reference.md",
+        "wiki/concepts/Language_Server_Protocol.md"
+      ]
+    },
+    {
+      "path": "diagnostic_codes.py",
+      "source_type": "repo_rules",
+      "source_url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/diagnostic_codes.py",
+      "retrieval_date": "2026-06-12",
+      "software_version": "mlip-lsp 0.2.0",
+      "license": "MIT",
+      "checksum_sha256": "9e6d11f1f0ee2fb0d15af0a3c2d9bb730c53a794d3193eb21a78caf2946592b0",
+      "stable_id": "mlip-diagnostic-codes-v1",
+      "role": "code_snapshot",
+      "wiki_links": [
+        "wiki/synthesis/Diagnostic_Codes_Reference.md",
+        "wiki/concepts/Diagnostic_System.md",
+        "wiki/synthesis/openqc-agent-context.md"
+      ]
+    },
+    {
+      "path": "matmaster_rules.py",
+      "source_type": "repo_rules",
+      "source_url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/matmaster_rules.py",
+      "retrieval_date": "2026-06-12",
+      "software_version": "mlip-lsp 0.2.0",
+      "license": "MIT",
+      "checksum_sha256": "f5af0ba039517471f3aa765c6b5b3a76aebc002c12f755e7c10a8b34a4f9f6d1",
+      "stable_id": "mlip-matmaster-rules-v1",
+      "role": "code_snapshot",
+      "wiki_links": [
+        "wiki/concepts/MatMaster_Execution_Contract.md",
+        "wiki/concepts/MatMaster_Execution_Contract.md",
+        "wiki/entities/MLIP_Models.md",
+        "wiki/entities/MLIP_Task_Types.md",
+        "wiki/entities/Structure_File_Formats.md",
+        "wiki/synthesis/API_Reference.md",
+        "wiki/synthesis/openqc-agent-context.md"
+      ]
     }
   ]
 }

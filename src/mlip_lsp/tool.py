@@ -1,5 +1,6 @@
 """Agent-facing CLI for Diagnostic Engine v1 operations."""
 
+# See also: wiki/concepts/CLI_Toolchain.md, wiki/concepts/Diagnostic_System.md
 from __future__ import annotations
 
 import argparse

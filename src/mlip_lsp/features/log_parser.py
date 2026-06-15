@@ -1,5 +1,6 @@
 """Runtime log parser for MLIP workflows.
 
+# See also: wiki/concepts/Log_Parsing.md
 Detects Python tracebacks and other runtime artifacts in log output.
 Emits MLIP-E087 diagnostics for each traceback found.
 """

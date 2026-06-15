@@ -1,5 +1,7 @@
 """pygls-based LSP server for MLIP workflow manifests and ASE scripts."""
 
+# See also: wiki/concepts/Language_Server_Protocol.md, wiki/concepts/Diagnostic_System.md
+
 from __future__ import annotations
 
 import ast
@@ -152,7 +154,11 @@ def _compute_diagnostics_for_uri(uri: str, content: str) -> list[Diagnostic]:
             ]
         json_diagnostics: list[Diagnostic] = []
         if isinstance(payload, dict):
-            key_to_code = {"model": "MLIP-E082", "task": "MLIP-E083", "structure": "MLIP-E084"}
+            key_to_code = {
+                "model": "MLIP-E082",
+                "task": "MLIP-E083",
+                "structure": "MLIP-E084",
+            }
             for key, code in key_to_code.items():
                 if key not in payload:
                     json_diagnostics.append(
@@ -191,7 +197,11 @@ def _compute_diagnostics_for_uri(uri: str, content: str) -> list[Diagnostic]:
             ]
         yaml_diagnostics: list[Diagnostic] = []
         if isinstance(payload, dict):
-            key_to_code = {"model": "MLIP-E082", "task": "MLIP-E083", "structure": "MLIP-E084"}
+            key_to_code = {
+                "model": "MLIP-E082",
+                "task": "MLIP-E083",
+                "structure": "MLIP-E084",
+            }
             for key, code in key_to_code.items():
                 if key not in payload:
                     yaml_diagnostics.append(

@@ -12,6 +12,8 @@ Rule code assignment:
   MLIP-E087  mlip.log.traceback         – runtime log contains a Python traceback
 """
 
+# See also: wiki/synthesis/Diagnostic_Codes_Reference.md, wiki/concepts/Diagnostic_System.md
+
 from __future__ import annotations
 
 from dataclasses import dataclass

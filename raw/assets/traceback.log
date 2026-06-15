@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "run_mlip_workflow.py", line 12, in <module>
+    run_workflow(manifest)
+ValueError: model file is missing
+
+Source: https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/traceback.log

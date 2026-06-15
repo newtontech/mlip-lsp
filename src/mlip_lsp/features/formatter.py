@@ -1,5 +1,6 @@
 """Safe formatter for MLIP manifest files (JSON, YAML, text).
 
+# See also: wiki/concepts/Safe_Formatting.md
 Guarantees:
   1. Never raises – returns the original text on any parse/format failure.
   2. Idempotent: format(format(text)) == format(text).
