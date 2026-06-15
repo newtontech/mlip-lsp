@@ -1,0 +1,616 @@
+{
+  "docstrings": [
+    {
+      "path": "src/mlip_lsp/__init__.py",
+      "symbol": "__init__",
+      "wikiPath": "wiki/synthesis/openqc-agent-context.md"
+    },
+    {
+      "path": "src/mlip_lsp/analyzer.py",
+      "symbol": "_looks_like_file_path",
+      "wikiPath": "wiki/concepts/Diagnostic_System.md"
+    },
+    {
+      "path": "src/mlip_lsp/analyzer.py",
+      "symbol": "_looks_like_file_path",
+      "wikiPath": "wiki/concepts/CLI_Toolchain.md"
+    },
+    {
+      "path": "src/mlip_lsp/diagnostics.py",
+      "symbol": "Diagnostic",
+      "wikiPath": "wiki/synthesis/Diagnostic_Codes_Reference.md"
+    },
+    {
+      "path": "src/mlip_lsp/features/formatter.py",
+      "symbol": "_safe_json_loads",
+      "wikiPath": "wiki/concepts/Safe_Formatting.md"
+    },
+    {
+      "path": "src/mlip_lsp/features/log_parser.py",
+      "symbol": "TracebackBlock",
+      "wikiPath": "wiki/concepts/Log_Parsing.md"
+    },
+    {
+      "path": "src/mlip_lsp/features/matmaster.py",
+      "symbol": "validate_manifest_structure",
+      "wikiPath": "wiki/concepts/MatMaster_Execution_Contract.md"
+    },
+    {
+      "path": "src/mlip_lsp/features/matmaster.py",
+      "symbol": "validate_manifest_structure",
+      "wikiPath": "wiki/entities/MLIP_Manifest.md"
+    },
+    {
+      "path": "src/mlip_lsp/features/rules.py",
+      "symbol": "Rule",
+      "wikiPath": "wiki/synthesis/Diagnostic_Codes_Reference.md"
+    },
+    {
+      "path": "src/mlip_lsp/features/rules.py",
+      "symbol": "Rule",
+      "wikiPath": "wiki/concepts/Diagnostic_System.md"
+    },
+    {
+      "path": "src/mlip_lsp/preflight.py",
+      "symbol": "ArtifactNode",
+      "wikiPath": "wiki/concepts/MatMaster_Execution_Contract.md"
+    },
+    {
+      "path": "src/mlip_lsp/rich_diagnostics.py",
+      "symbol": "severity_label",
+      "wikiPath": "wiki/concepts/diagnostic-engine-v1.md"
+    },
+    {
+      "path": "src/mlip_lsp/server.py",
+      "symbol": "MLIPServer",
+      "wikiPath": "wiki/concepts/Language_Server_Protocol.md"
+    },
+    {
+      "path": "src/mlip_lsp/server.py",
+      "symbol": "MLIPServer",
+      "wikiPath": "wiki/concepts/Diagnostic_System.md"
+    },
+    {
+      "path": "src/mlip_lsp/tool.py",
+      "symbol": "_capabilities_payload",
+      "wikiPath": "wiki/concepts/CLI_Toolchain.md"
+    },
+    {
+      "path": "src/mlip_lsp/tool.py",
+      "symbol": "_capabilities_payload",
+      "wikiPath": "wiki/concepts/Diagnostic_System.md"
+    }
+  ],
+  "generatedAt": "1970-01-01T00:00:00+00:00",
+  "languageId": "mlip",
+  "rawManifest": {
+    "ok": true,
+    "path": "raw/assets/manifest.json"
+  },
+  "repository": "newtontech/mlip-lsp",
+  "ruleIds": [
+    {
+      "code": "MLIP-INPUT-ERROR-080",
+      "sourcePath": "src/mlip_lsp/analyzer.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-081",
+      "sourcePath": "src/mlip_lsp/analyzer.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-085",
+      "sourcePath": "src/mlip_lsp/analyzer.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-086",
+      "sourcePath": "src/mlip_lsp/analyzer.py"
+    },
+    {
+      "code": "MLIP-INPUT-WARNING-080",
+      "sourcePath": "src/mlip_lsp/analyzer.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-087",
+      "sourcePath": "src/mlip_lsp/features/log_parser.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-082",
+      "sourcePath": "src/mlip_lsp/features/matmaster.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-083",
+      "sourcePath": "src/mlip_lsp/features/matmaster.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-084",
+      "sourcePath": "src/mlip_lsp/features/matmaster.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-080",
+      "sourcePath": "src/mlip_lsp/features/rules.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-081",
+      "sourcePath": "src/mlip_lsp/features/rules.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-082",
+      "sourcePath": "src/mlip_lsp/features/rules.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-083",
+      "sourcePath": "src/mlip_lsp/features/rules.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-084",
+      "sourcePath": "src/mlip_lsp/features/rules.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-085",
+      "sourcePath": "src/mlip_lsp/features/rules.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-086",
+      "sourcePath": "src/mlip_lsp/features/rules.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-087",
+      "sourcePath": "src/mlip_lsp/features/rules.py"
+    },
+    {
+      "code": "MLIP-INPUT-WARNING-080",
+      "sourcePath": "src/mlip_lsp/features/rules.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-080",
+      "sourcePath": "src/mlip_lsp/preflight.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-081",
+      "sourcePath": "src/mlip_lsp/preflight.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-082",
+      "sourcePath": "src/mlip_lsp/preflight.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-080",
+      "sourcePath": "src/mlip_lsp/server.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-081",
+      "sourcePath": "src/mlip_lsp/server.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-082",
+      "sourcePath": "src/mlip_lsp/server.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-083",
+      "sourcePath": "src/mlip_lsp/server.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-084",
+      "sourcePath": "src/mlip_lsp/server.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-085",
+      "sourcePath": "src/mlip_lsp/server.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-086",
+      "sourcePath": "src/mlip_lsp/server.py"
+    },
+    {
+      "code": "MLIP-INPUT-WARNING-080",
+      "sourcePath": "src/mlip_lsp/server.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-082",
+      "sourcePath": "src/mlip_lsp/tool.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-083",
+      "sourcePath": "src/mlip_lsp/tool.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-084",
+      "sourcePath": "src/mlip_lsp/tool.py"
+    },
+    {
+      "code": "MLIP-INPUT-ERROR-086",
+      "sourcePath": "src/mlip_lsp/tool.py"
+    }
+  ],
+  "schemaVersion": "openqc.lsp.traceability.v1",
+  "serverId": "mlip-lsp",
+  "sourceUrls": [
+    {
+      "rawPath": "raw/assets/README.md",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/README.md"
+    },
+    {
+      "rawPath": "raw/assets/README.md",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/README.md"
+    },
+    {
+      "rawPath": "raw/assets/analyzer.py",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/analyzer.py"
+    },
+    {
+      "rawPath": "raw/assets/analyzer.py",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/analyzer.py"
+    },
+    {
+      "rawPath": "raw/assets/diagnostic_codes.py",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/diagnostic_codes.py"
+    },
+    {
+      "rawPath": "raw/assets/diagnostic_codes.py",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/diagnostic_codes.py"
+    },
+    {
+      "rawPath": "raw/assets/diagnostic_codes.py",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/diagnostic_codes.py"
+    },
+    {
+      "rawPath": "raw/assets/diagnostic_codes.py",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/diagnostic_codes.py"
+    },
+    {
+      "rawPath": "raw/assets/diagnostic_codes.py",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/diagnostic_codes.py"
+    },
+    {
+      "rawPath": "raw/assets/examples/manifest_md.json",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/examples/manifest_md.json"
+    },
+    {
+      "rawPath": "raw/assets/examples/manifest_md.json",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/examples/manifest_md.json"
+    },
+    {
+      "rawPath": "raw/assets/manifest.json",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/manifest.json"
+    },
+    {
+      "rawPath": "raw/assets/matmaster_rules.py",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/matmaster_rules.py"
+    },
+    {
+      "rawPath": "raw/assets/matmaster_rules.py",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/matmaster_rules.py"
+    },
+    {
+      "rawPath": "raw/assets/matmaster_rules.py",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/matmaster_rules.py"
+    },
+    {
+      "rawPath": "raw/assets/matmaster_rules.py",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/matmaster_rules.py"
+    },
+    {
+      "rawPath": "raw/assets/matmaster_rules.py",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/matmaster_rules.py"
+    },
+    {
+      "rawPath": "raw/assets/matmaster_rules.py",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/matmaster_rules.py"
+    },
+    {
+      "rawPath": "raw/assets/mlip-cli-reference.md",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-cli-reference.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-cli-reference.md",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-cli-reference.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-cli-reference.md",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-cli-reference.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-cli-reference.md",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-cli-reference.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-examples.md",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-examples.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-examples.md",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-examples.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-examples.md",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-examples.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-input-format.md",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-input-format.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-input-format.md",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-input-format.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-input-format.md",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-input-format.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-readme.md",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-readme.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-readme.md",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-readme.md"
+    },
+    {
+      "rawPath": "raw/assets/mtp-documentation.md",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mtp-documentation.md"
+    },
+    {
+      "rawPath": "raw/assets/mtp-documentation.md",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mtp-documentation.md"
+    },
+    {
+      "rawPath": "raw/assets/nep_config.txt",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/nep_config.txt"
+    },
+    {
+      "rawPath": "raw/assets/nep_config.txt",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/nep_config.txt"
+    },
+    {
+      "rawPath": "raw/assets/traceback.log",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/traceback.log"
+    },
+    {
+      "rawPath": "raw/assets/upstream-sources.md",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/upstream-sources.md"
+    },
+    {
+      "rawPath": "raw/assets/valid_ase_script.py",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/valid_ase_script.py"
+    },
+    {
+      "rawPath": "raw/assets/valid_ase_script.py",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/valid_ase_script.py"
+    },
+    {
+      "rawPath": "raw/assets/valid_ase_script.py",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/valid_ase_script.py"
+    },
+    {
+      "rawPath": "raw/assets/valid_manifest.json",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/valid_manifest.json"
+    },
+    {
+      "rawPath": "raw/assets/valid_manifest.json",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/valid_manifest.json"
+    },
+    {
+      "rawPath": "raw/assets/valid_manifest.json",
+      "url": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/valid_manifest.json"
+    }
+  ],
+  "summary": {
+    "brokenWikiLinks": 0,
+    "docstringsLinked": 16,
+    "docstringsTotal": 16,
+    "rawManifestFailures": 0,
+    "wikiSourcesWithoutRaw": 0
+  },
+  "wikiSources": [
+    {
+      "rawPath": "raw/assets/README.md",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/README.md",
+      "wikiPath": "wiki/concepts/CLI_Toolchain.md"
+    },
+    {
+      "rawPath": "raw/assets/diagnostic_codes.py",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/diagnostic_codes.py",
+      "wikiPath": "wiki/concepts/Diagnostic_System.md"
+    },
+    {
+      "rawPath": "raw/assets/analyzer.py",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/analyzer.py",
+      "wikiPath": "wiki/concepts/Language_Server_Protocol.md"
+    },
+    {
+      "rawPath": "raw/assets/traceback.log",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/traceback.log",
+      "wikiPath": "wiki/concepts/Log_Parsing.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-cli-reference.md",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-cli-reference.md",
+      "wikiPath": "wiki/concepts/MLIP_Training_Workflows.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-examples.md",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-examples.md",
+      "wikiPath": "wiki/concepts/MLIP_Training_Workflows.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-input-format.md",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-input-format.md",
+      "wikiPath": "wiki/concepts/MLIP_Training_Workflows.md"
+    },
+    {
+      "rawPath": "raw/assets/matmaster_rules.py",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/matmaster_rules.py",
+      "wikiPath": "wiki/concepts/MatMaster_Execution_Contract.md"
+    },
+    {
+      "rawPath": "raw/assets/nep_config.txt",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/nep_config.txt",
+      "wikiPath": "wiki/concepts/Safe_Formatting.md"
+    },
+    {
+      "rawPath": "raw/assets/diagnostic_codes.py",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/diagnostic_codes.py",
+      "wikiPath": "wiki/concepts/diagnostic-engine-v1.md"
+    },
+    {
+      "rawPath": "raw/assets/manifest.json",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/manifest.json",
+      "wikiPath": "wiki/concepts/diagnostic-engine-v1.md"
+    },
+    {
+      "rawPath": "raw/assets/valid_ase_script.py",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/valid_ase_script.py",
+      "wikiPath": "wiki/entities/ASE_Atomistic_Simulation.md"
+    },
+    {
+      "rawPath": "raw/assets/examples/manifest_md.json",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/examples/manifest_md.json",
+      "wikiPath": "wiki/entities/MLIP_Manifest.md"
+    },
+    {
+      "rawPath": "raw/assets/valid_manifest.json",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/valid_manifest.json",
+      "wikiPath": "wiki/entities/MLIP_Manifest.md"
+    },
+    {
+      "rawPath": "raw/assets/matmaster_rules.py",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/matmaster_rules.py",
+      "wikiPath": "wiki/entities/MLIP_Models.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-cli-reference.md",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-cli-reference.md",
+      "wikiPath": "wiki/entities/MLIP_Models.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-readme.md",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-readme.md",
+      "wikiPath": "wiki/entities/MLIP_Models.md"
+    },
+    {
+      "rawPath": "raw/assets/mtp-documentation.md",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mtp-documentation.md",
+      "wikiPath": "wiki/entities/MLIP_Models.md"
+    },
+    {
+      "rawPath": "raw/assets/matmaster_rules.py",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/matmaster_rules.py",
+      "wikiPath": "wiki/entities/MLIP_Task_Types.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-cli-reference.md",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-cli-reference.md",
+      "wikiPath": "wiki/entities/MTP_Documentation.md"
+    },
+    {
+      "rawPath": "raw/assets/mtp-documentation.md",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mtp-documentation.md",
+      "wikiPath": "wiki/entities/MTP_Documentation.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-examples.md",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-examples.md",
+      "wikiPath": "wiki/entities/NEP_Configuration.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-input-format.md",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-input-format.md",
+      "wikiPath": "wiki/entities/NEP_Configuration.md"
+    },
+    {
+      "rawPath": "raw/assets/nep_config.txt",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/nep_config.txt",
+      "wikiPath": "wiki/entities/NEP_Configuration.md"
+    },
+    {
+      "rawPath": "raw/assets/matmaster_rules.py",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/matmaster_rules.py",
+      "wikiPath": "wiki/entities/Structure_File_Formats.md"
+    },
+    {
+      "rawPath": "raw/assets/analyzer.py",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/analyzer.py",
+      "wikiPath": "wiki/synthesis/API_Reference.md"
+    },
+    {
+      "rawPath": "raw/assets/diagnostic_codes.py",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/diagnostic_codes.py",
+      "wikiPath": "wiki/synthesis/API_Reference.md"
+    },
+    {
+      "rawPath": "raw/assets/matmaster_rules.py",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/matmaster_rules.py",
+      "wikiPath": "wiki/synthesis/API_Reference.md"
+    },
+    {
+      "rawPath": "raw/assets/diagnostic_codes.py",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/diagnostic_codes.py",
+      "wikiPath": "wiki/synthesis/Diagnostic_Codes_Reference.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-cli-reference.md",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-cli-reference.md",
+      "wikiPath": "wiki/synthesis/Input_Format_Reference.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-examples.md",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-examples.md",
+      "wikiPath": "wiki/synthesis/Input_Format_Reference.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-input-format.md",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-input-format.md",
+      "wikiPath": "wiki/synthesis/Input_Format_Reference.md"
+    },
+    {
+      "rawPath": "raw/assets/mlip-readme.md",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/mlip-readme.md",
+      "wikiPath": "wiki/synthesis/Input_Format_Reference.md"
+    },
+    {
+      "rawPath": "raw/assets/valid_ase_script.py",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/valid_ase_script.py",
+      "wikiPath": "wiki/synthesis/Input_Format_Reference.md"
+    },
+    {
+      "rawPath": "raw/assets/valid_manifest.json",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/valid_manifest.json",
+      "wikiPath": "wiki/synthesis/Input_Format_Reference.md"
+    },
+    {
+      "rawPath": "raw/assets/README.md",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/README.md",
+      "wikiPath": "wiki/synthesis/Typical_Workflows.md"
+    },
+    {
+      "rawPath": "raw/assets/diagnostic_codes.py",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/diagnostic_codes.py",
+      "wikiPath": "wiki/synthesis/openqc-agent-context.md"
+    },
+    {
+      "rawPath": "raw/assets/examples/manifest_md.json",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/examples/manifest_md.json",
+      "wikiPath": "wiki/synthesis/openqc-agent-context.md"
+    },
+    {
+      "rawPath": "raw/assets/matmaster_rules.py",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/matmaster_rules.py",
+      "wikiPath": "wiki/synthesis/openqc-agent-context.md"
+    },
+    {
+      "rawPath": "raw/assets/upstream-sources.md",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/upstream-sources.md",
+      "wikiPath": "wiki/synthesis/openqc-agent-context.md"
+    },
+    {
+      "rawPath": "raw/assets/valid_ase_script.py",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/valid_ase_script.py",
+      "wikiPath": "wiki/synthesis/openqc-agent-context.md"
+    },
+    {
+      "rawPath": "raw/assets/valid_manifest.json",
+      "sourceUrl": "https://github.com/newtontech/mlip-lsp/blob/main/raw/assets/valid_manifest.json",
+      "wikiPath": "wiki/synthesis/openqc-agent-context.md"
+    }
+  ]
+}

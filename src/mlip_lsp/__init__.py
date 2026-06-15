@@ -1,4 +1,7 @@
-"""MLIP LSP and CLI tools."""
+"""MLIP LSP and CLI tools.
+
+See also: wiki/synthesis/openqc-agent-context.md for OpenQC agent context.
+"""
 
 __all__ = ["__version__"]
 

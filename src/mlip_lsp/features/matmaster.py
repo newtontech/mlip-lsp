@@ -5,6 +5,8 @@ dispatching MLIP jobs. These rules validate that manifests conform
 to the structure required for automated execution.
 """
 
+# See also: wiki/concepts/MatMaster_Execution_Contract.md, wiki/entities/MLIP_Manifest.md
+
 from __future__ import annotations
 
 from typing import Any
@@ -143,7 +145,10 @@ def validate_manifest_structure(manifest: dict[str, Any], file_path: str) -> lis
                     ),
                     file=file_path,
                     line=1,
-                    suggested_fix={"kind": "check_structure_extension", "path": structure},
+                    suggested_fix={
+                        "kind": "check_structure_extension",
+                        "path": structure,
+                    },
                     confidence=0.6,
                 )
             )

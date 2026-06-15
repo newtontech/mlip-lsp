@@ -4,6 +4,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 
+# See also: wiki/synthesis/Diagnostic_Codes_Reference.md
 @dataclass(frozen=True)
 class Diagnostic:
     code: str

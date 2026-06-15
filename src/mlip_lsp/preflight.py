@@ -26,6 +26,8 @@ fields (``source_provenance``, ``domain_tags``, ``facts``, ``artifact_roles``,
 ``version_assumption``, ``actions``) directly.
 """
 
+# See also: wiki/concepts/MatMaster_Execution_Contract.md
+
 from __future__ import annotations
 
 import json
@@ -410,14 +412,17 @@ def preflight_diagnostics(
     diagnostics.extend(_model_engine_incompatibility_diagnostics(manifest))
     diagnostics.extend(_version_assumption_diagnostic(version_assumption, intent))
 
-    return sorted(
-        diagnostics,
-        key=lambda item: (
-            item.get("range", {}).get("start", {}).get("line", 0),
-            item.get("range", {}).get("start", {}).get("character", 0),
-            item["code"],
+    return (
+        sorted(
+            diagnostics,
+            key=lambda item: (
+                item.get("range", {}).get("start", {}).get("line", 0),
+                item.get("range", {}).get("start", {}).get("character", 0),
+                item["code"],
+            ),
         ),
-    ), graph
+        graph,
+    )
 
 
 def _diag(
@@ -741,7 +746,9 @@ def _task_param_diagnostics(manifest: ParsedManifest) -> list[dict[str, Any]]:
     return out
 
 
-def _unsupported_structure_diagnostics(manifest: ParsedManifest) -> list[dict[str, Any]]:
+def _unsupported_structure_diagnostics(
+    manifest: ParsedManifest,
+) -> list[dict[str, Any]]:
     """Flag structure references whose extension the engines cannot consume."""
     out: list[dict[str, Any]] = []
     structure_value = _as_str(manifest.data.get("structure"))

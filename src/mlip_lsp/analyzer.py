@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+# See also: wiki/concepts/Diagnostic_System.md, wiki/concepts/CLI_Toolchain.md
 import ast
 import json
 import os
@@ -117,7 +118,13 @@ def analyze_file(path: Path) -> list[Diagnostic]:
         content = path.read_text(encoding="utf-8")
     except UnicodeDecodeError:
         return [
-            Diagnostic(f"{CODE_PREFIX}202", "error", "file is not valid UTF-8 text", str(path), 1)
+            Diagnostic(
+                f"{CODE_PREFIX}202",
+                "error",
+                "file is not valid UTF-8 text",
+                str(path),
+                1,
+            )
         ]
     suffix = path.suffix.lower()
     if suffix == ".json":
@@ -257,7 +264,14 @@ def _analyze_python(path: Path, content: str) -> list[Diagnostic]:
         tree = ast.parse(content)
     except SyntaxError as exc:
         return [
-            Diagnostic("MLIP-E080", "error", exc.msg, str(path), exc.lineno or 1, exc.offset or 1)
+            Diagnostic(
+                "MLIP-E080",
+                "error",
+                exc.msg,
+                str(path),
+                exc.lineno or 1,
+                exc.offset or 1,
+            )
         ]
     names = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
     attrs = {node.attr for node in ast.walk(tree) if isinstance(node, ast.Attribute)}
