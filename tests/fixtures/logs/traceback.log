@@ -1,0 +1,9 @@
+2024-01-15 10:30:00 - INFO - Starting calculation
+2024-01-15 10:30:01 - INFO - Loading model DPA3.1-3M
+2024-01-15 10:30:02 - ERROR - Calculation failed
+Traceback (most recent call last):
+  File "run_calculation.py", line 42, in run_calculation
+    energy = atoms.get_potential_energy()
+  File "ase/atoms.py", line 582, in get_potential_energy
+    return self._calculate('energy', atoms)
+RuntimeError: Calculator not initialized
