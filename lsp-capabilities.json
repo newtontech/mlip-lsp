@@ -77,8 +77,12 @@
     ]
   },
   "outputLogPatterns": [
-    "*.log",
-    "traceback.log"
+    {
+      "code": "MLIP-E087",
+      "severity": "error",
+      "description": "Python traceback in MLIP runtime log",
+      "manifest_entry": "mlip-log-parser-v1"
+    }
   ],
   "diagnostic_coverage": {
     "status": "partial",
@@ -94,7 +98,22 @@
     {
       "kind": "official_docs",
       "label": "MLIP documentation",
-      "url": "https://mlip.skoltech.ru/"
+      "url": "https://mlip.skoltech.ru/",
+      "retrieval_date": "2026-06-15",
+      "software_version": "MLIP 2024",
+      "manifest_entry": "mlip-input-format-v1",
+      "diagnostic_codes_sourced": [
+        "MLIP-E082",
+        "MLIP-E080",
+        "MLIP-E087",
+        "MLIP603",
+        "MLIP604",
+        "MLIP609"
+      ],
+      "wiki_links": [
+        "wiki/synthesis/Diagnostic_Codes_Reference.md",
+        "wiki/synthesis/Input_Format_Reference.md"
+      ]
     },
     {
       "kind": "official_examples",
