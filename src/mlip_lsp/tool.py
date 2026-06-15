@@ -10,9 +10,9 @@ from typing import Any, cast
 from .agent_operations import operation_path, with_capabilities
 from .preflight import CODE_MISSING_ARTIFACT, CODE_MISSING_REQUIRED_KEY
 from .rich_diagnostics import agent_check_payload
+from .skill_export import export_skill, skill_spec_text
 
 SOFTWARE = "mlip"
-
 
 def _capabilities_payload() -> dict[str, Any]:
     for parent in Path(__file__).resolve().parents:
@@ -51,7 +51,6 @@ def _capabilities_payload() -> dict[str, Any]:
         },
     }
 
-
 def _file_type(path: Path) -> str:
     name = path.name.upper()
     if name in {"INCAR", "POSCAR", "KPOINTS", "POTCAR", "CONTCAR"}:
@@ -60,12 +59,10 @@ def _file_type(path: Path) -> str:
         return path.suffix.lstrip(".").lower()
     return name.lower()
 
-
 def _collect_diagnostics(path: Path) -> list[Any]:
     from .analyzer import analyze_path
 
     return list(analyze_path(path))
-
 
 def _load_intent(path: Path) -> dict[str, Any] | None:
     """Load the optional preflight intent contract for a case directory.
@@ -84,7 +81,6 @@ def _load_intent(path: Path) -> dict[str, Any] | None:
         return None
     return data if isinstance(data, dict) else None
 
-
 def _looks_like_workspace(path: Path) -> bool:
     """True when a path resolves to a real generated-input workspace.
 
@@ -98,7 +94,6 @@ def _looks_like_workspace(path: Path) -> bool:
     from .preflight import find_manifest
 
     return find_manifest(path) is not None
-
 
 def _collect_preflight(
     path: Path, intent: dict[str, Any] | None
@@ -115,7 +110,6 @@ def _collect_preflight(
     version_assumption = resolve_version_assumption(intent)
     return diagnostics, graph.to_json(), version_assumption
 
-
 # Codes already emitted by the legacy analyzer that overlap with the universal
 # preflight surface. We keep the legacy emission (it carries the existing test
 # contract) and drop the duplicate preflight variant to avoid noisy double
@@ -126,7 +120,6 @@ _OVERLAP_CODES_BY_LEGACY = {
     "MLIP-E084": {CODE_MISSING_REQUIRED_KEY},  # legacy missing structure key
     "MLIP-E086": {CODE_MISSING_ARTIFACT},  # legacy missing file reference
 }
-
 
 def _dedupe_preflight(legacy: list[Any], preflight: list[Any]) -> list[Any]:
     """Drop preflight diagnostics whose finding the legacy analyzer already emitted."""
@@ -146,7 +139,6 @@ def _dedupe_preflight(legacy: list[Any], preflight: list[Any]) -> list[Any]:
         for item in preflight
         if (item.get("code") if isinstance(item, dict) else None) not in suppressed_preflight
     ]
-
 
 def check_path(path: Path) -> dict[str, Any]:
     uri = path.resolve().as_uri()
@@ -173,7 +165,6 @@ def check_path(path: Path) -> dict[str, Any]:
         artifacts=artifacts,
     )
 
-
 def preflight_path(path: Path) -> dict[str, Any]:
     """Return a preflight-only payload (universal checks, no legacy analyzer)."""
     from .preflight import preflight_diagnostics, resolve_version_assumption
@@ -194,7 +185,6 @@ def preflight_path(path: Path) -> dict[str, Any]:
         artifacts=graph.to_json(),
     )
     return with_capabilities(payload, "preflight")
-
 
 def manifest_path(path: Path | None = None) -> dict[str, Any]:
     """Return the fleet preflight manifest.
@@ -220,7 +210,6 @@ def manifest_path(path: Path | None = None) -> dict[str, Any]:
                 fixtures = [item for item in data["fixtures"] if isinstance(item, dict)]
     return fleet_manifest(fixtures=fixtures)
 
-
 def _operation_payload(
     path: Path,
     operation: str,
@@ -237,10 +226,13 @@ def _operation_payload(
         character=character,
     )
 
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="mlip-lsp-tool")
     subparsers = parser.add_subparsers(dest="operation", required=True)
+    skill_spec = subparsers.add_parser("skill-spec")
+    skill_spec.add_argument("--format", choices=["json", "yaml"], default="json")
+    skill_export = subparsers.add_parser("skill-export")
+    skill_export.add_argument("--output", type=Path, required=True)
     capabilities = subparsers.add_parser("capabilities")
     capabilities.add_argument("--format", choices=["json"], default="json")
     for operation in (
@@ -280,6 +272,13 @@ def main(argv: list[str] | None = None) -> int:
             sub.add_argument("--fail-on-blocking", action="store_true")
     args = parser.parse_args(argv)
 
+    if args.operation == "skill-spec":
+        print(skill_spec_text(args.format))
+        return 0
+    if args.operation == "skill-export":
+        print(json.dumps(export_skill(args.output), indent=2, sort_keys=True))
+        return 0
+
     if args.operation == "capabilities":
         print(json.dumps(_capabilities_payload(), indent=2, sort_keys=True))
         return 0
@@ -298,7 +297,6 @@ def main(argv: list[str] | None = None) -> int:
     payload = _operation_payload(args.path, args.operation, args.line, args.character)
     print(json.dumps(payload, indent=2, sort_keys=True))
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
