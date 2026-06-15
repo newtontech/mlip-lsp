@@ -1,0 +1,35 @@
+schema: scientific-lsp-skill/v1
+name: mlip
+software: mlip
+display_name: MLIP
+description: MLIP workflow preflight for manifests and ASE scripts.
+package:
+  name: mlip-lsp
+  install: pip install mlip-lsp
+entrypoints:
+  server: mlip-lsp
+  tool: mlip-lsp-tool
+file_patterns:
+  - *.mlip.json
+  - *.mlip.yaml
+  - *.mlip.yml
+  - mlip.json
+  - mlip.yaml
+  - mlip.yml
+operations:
+  - capabilities
+  - check
+  - context
+  - complete
+  - hover
+  - symbols
+  - fix
+diagnostic_contract: DiagnosticEnvelope/v1
+blocking_policy:
+  mode: fail-on-blocking
+  description: Use --fail-on-blocking when generated inputs must be launch-ready.
+source_provenance:
+  -
+    kind: official_docs
+    label: MLIP documentation
+    url: https://mlip.skoltech.ru/

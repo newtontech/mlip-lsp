@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mlip-lsp"
-version = "0.2.0"
+version = "0.2.1rc1"
 description = "Language Server Protocol and CLI tools for MLIP workflow manifests and ASE scripts"
 readme = "README.md"
 license = { text = "MIT" }
@@ -51,6 +51,10 @@ mlip-lint = "mlip_lsp.cli:lint_main"
 mlip-fmt = "mlip_lsp.cli:fmt_main"
 mlip-test = "mlip_lsp.cli:test_main"
 mlip-lsp-tool = "mlip_lsp.tool:main"
+
+
+[tool.hatch.build.force-include]
+"skill" = "skill"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mlip_lsp"]
