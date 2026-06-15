@@ -66,18 +66,24 @@
   "fixturePaths": {
     "valid": [
       "tests/fixtures/valid",
-      "test/fixtures/valid"
+      "tests/fixtures/preflight/valid_manifest"
     ],
     "invalid": [
       "tests/fixtures/invalid",
-      "test/fixtures/invalid"
+      "tests/fixtures/preflight/missing_model_potential"
     ],
     "logs": [
-      "tests/fixtures/logs",
-      "test/fixtures/logs"
+      "tests/fixtures/logs"
     ]
   },
-  "outputLogPatterns": [],
+  "outputLogPatterns": [
+    "*.log",
+    "traceback.log"
+  ],
+  "diagnostic_coverage": {
+    "status": "partial",
+    "notes": "Manifest, ASE script, and preflight diagnostics are implemented; exhaustive MLIP version-gated grammar coverage remains in progress (issues #34, #35)."
+  },
   "openqc": {
     "registryId": "mlip-lsp",
     "repoName": "mlip-lsp",
@@ -94,10 +100,16 @@
       "kind": "official_examples",
       "label": "MACE training examples",
       "url": "https://github.com/acesuit/mace"
+    },
+    {
+      "kind": "provenance_manifest",
+      "label": "MLIP provenance manifest",
+      "path": "raw/assets/manifest.json"
     }
   ],
   "llmWiki": {
     "upstreamManifest": "raw/assets/upstream-sources.md",
+    "provenanceManifest": "raw/assets/manifest.json",
     "agentContext": "wiki/synthesis/openqc-agent-context.md",
     "diagnosticEngine": "wiki/concepts/diagnostic-engine-v1.md",
     "exampleInputs": [

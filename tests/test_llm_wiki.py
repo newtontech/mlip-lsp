@@ -12,6 +12,7 @@ def test_lsp_capabilities_llm_wiki_paths_exist() -> None:
     caps = json.loads((REPO_ROOT / "lsp-capabilities.json").read_text(encoding="utf-8"))
     llm_wiki = caps["llmWiki"]
     assert (REPO_ROOT / llm_wiki["upstreamManifest"]).is_file()
+    assert (REPO_ROOT / llm_wiki["provenanceManifest"]).is_file()
     assert (REPO_ROOT / llm_wiki["agentContext"]).is_file()
     for example in llm_wiki["exampleInputs"]:
         assert (REPO_ROOT / example).is_file(), example
