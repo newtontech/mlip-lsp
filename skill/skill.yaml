@@ -10,9 +10,9 @@ entrypoints:
   server: mlip-lsp
   tool: mlip-lsp-tool
 file_patterns:
-  - *.mlip.json
-  - *.mlip.yaml
-  - *.mlip.yml
+  - "*.mlip.json"
+  - "*.mlip.yaml"
+  - "*.mlip.yml"
   - mlip.json
   - mlip.yaml
   - mlip.yml
