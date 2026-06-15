@@ -1,0 +1,6 @@
+model: MACE
+structure: POSCAR
+task: md
+parameters:
+  temperature: 300
+  steps: 10000

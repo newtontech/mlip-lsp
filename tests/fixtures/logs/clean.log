@@ -1,0 +1,5 @@
+2024-01-15 10:30:00 - INFO - Starting calculation
+2024-01-15 10:30:01 - INFO - Loading model DPA3.1-3M
+2024-01-15 10:30:02 - INFO - Reading structure from input.cif
+2024-01-15 10:30:03 - INFO - Calculation completed successfully
+2024-01-15 10:30:04 - INFO - Energy: -12.345 eV
