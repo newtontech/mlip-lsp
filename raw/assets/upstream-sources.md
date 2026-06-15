@@ -25,3 +25,6 @@ Concise index of official documentation used by the LLM wiki and LSP hover/diagn
 - Manifest schema: `wiki/entities/MLIP_Manifest.md`
 - Agent context: `wiki/synthesis/openqc-agent-context.md`
 - Diagnostic engine: `wiki/concepts/diagnostic-engine-v1.md`
+
+Machine-readable provenance with checksums lives in `raw/assets/manifest.json`
+(`provenance-manifest-v1`). Update checksums when replacing raw digests.

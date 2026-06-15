@@ -13,6 +13,7 @@
 
 #### LSP / Agent updates
 - `lsp-capabilities.json` — Added `llmWiki` block with operation hints and example inputs
+- `raw/assets/manifest.json` — Checksum-backed provenance manifest (#34)
 - `wiki/synthesis/openqc-agent-context.md` — Wiki/raw grounding table for agent operations
 - `scripts/check-llm-wiki.sh` — Lightweight index and capability path validation
 
