@@ -343,3 +343,40 @@ class TestClosedLoopDiagnosticEnvelopeV1Contract:
         assert summary["errors"] == sum(1 for d in diagnostics if d["severity"] == "error")
         assert summary["warnings"] == sum(1 for d in diagnostics if d["severity"] == "warning")
         assert summary["blocking"] == sum(1 for d in diagnostics if d["blocking"])
+
+
+class TestClosedLoopPreflightFixPreview:
+    """Preflight workspace fix previews (issue #40)."""
+
+    PREFLIGHT = FIXTURES / "preflight"
+
+    def test_fix_on_model_engine_incompatible_workspace(self, capsys) -> None:
+        rc = tool.main(["fix", str(self.PREFLIGHT / "model_engine_incompatible")])
+        assert rc == 0
+        payload = json.loads(capsys.readouterr().out)
+        assert payload["operation"] == "fix"
+        assert payload["actions"]
+        codes = {a["diagnostic_code"] for a in payload["actions"]}
+        assert "MLIP609" in codes
+
+    def test_fix_refuses_auto_apply_for_preflight_blocking(self, capsys) -> None:
+        rc = tool.main(["fix", str(self.PREFLIGHT / "model_engine_incompatible")])
+        assert rc == 0
+        payload = json.loads(capsys.readouterr().out)
+        for action in payload["actions"]:
+            assert action["safe_to_auto_apply"] is False
+            assert action["edit"] is None
+
+    def test_check_preflight_task_param_mismatch_emits_code(self, capsys) -> None:
+        rc = tool.main(["check", str(self.PREFLIGHT / "task_param_mismatch")])
+        assert rc == 0
+        payload = json.loads(capsys.readouterr().out)
+        codes = {d["code"] for d in payload["diagnostics"]}
+        assert "MLIP603" in codes
+
+    def test_check_preflight_unresolved_training_config(self, capsys) -> None:
+        rc = tool.main(["check", str(self.PREFLIGHT / "unresolved_training_config")])
+        assert rc == 0
+        payload = json.loads(capsys.readouterr().out)
+        codes = {d["code"] for d in payload["diagnostics"]}
+        assert "MLIP604" in codes

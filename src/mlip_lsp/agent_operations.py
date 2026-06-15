@@ -368,7 +368,10 @@ def _diagnostic_hover(diagnostics: list[dict[str, Any]], line: int, character: i
 def _fix_actions(
     diagnostics: list[dict[str, Any]], *, line: int, character: int
 ) -> list[dict[str, Any]]:
-    selected = _diagnostics_at_position(diagnostics, line, character) or diagnostics
+    if line == 0 and character == 0:
+        selected = diagnostics
+    else:
+        selected = _diagnostics_at_position(diagnostics, line, character) or diagnostics
     actions: list[dict[str, Any]] = []
     for diagnostic in selected:
         hints = diagnostic.get("fix_hints") or []
