@@ -2,6 +2,20 @@
 
 All notable changes to mlip-lsp are documented in this file.
 
+## [0.2.1] - 2026-07-16
+
+### Added
+
+- Tag-only PyPI Trusted Publishing and GitHub Release automation using verified
+  distributions.
+- A source-and-wheel release verifier plus fresh-wheel server, agent CLI,
+  valid/invalid input, and runtime-log smoke coverage.
+
+### Changed
+
+- Aligned package, server, VERSION, changelog, and capability provenance on
+  release `0.2.1` / tag `v0.2.1`.
+
 ## [Unreleased]
 
 ### Added
