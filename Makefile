@@ -1,24 +1,38 @@
-.PHONY: install format lint typecheck test check cleanup-merged
+.PHONY: install format lint typecheck test wiki-check verify-release build smoke-wheel check cleanup-merged
+
+PYTHON ?= python
 
 install:
 	bash scripts/install.sh
 
 format:
-	bash scripts/format.sh
+	$(PYTHON) -m ruff format src tests scripts/verify_release.py
+	$(PYTHON) -m ruff check --fix src tests scripts/verify_release.py
 
 lint:
-	bash scripts/lint.sh
+	$(PYTHON) -m ruff check src tests scripts/verify_release.py
 
 typecheck:
-	bash scripts/typecheck.sh
+	$(PYTHON) -m mypy src scripts/verify_release.py
 
 test:
-	bash scripts/test.sh
+	$(PYTHON) -m pytest
 
 wiki-check:
 	bash scripts/check-llm-wiki.sh
 
-check: lint typecheck test wiki-check
+verify-release:
+	$(PYTHON) scripts/verify_release.py --tag v$$(cat VERSION)
+
+build:
+	rm -rf build dist
+	$(PYTHON) -m build
+	$(PYTHON) -m twine check dist/*
+
+smoke-wheel: build
+	bash scripts/smoke_wheel.sh dist/*.whl
+
+check: lint typecheck test wiki-check verify-release
 
 cleanup-merged:
 	bash scripts/cleanup_merged_worktrees.sh

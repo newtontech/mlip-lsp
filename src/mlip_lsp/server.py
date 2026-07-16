@@ -707,7 +707,7 @@ class MLIPServer:
     def __init__(self) -> None:
         self.server = LanguageServer(
             name="mlip-lsp",
-            version="0.1.0",
+            version="0.2.1",
         )
         self._register_handlers()
 
